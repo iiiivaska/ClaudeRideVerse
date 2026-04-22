@@ -1,3 +1,2 @@
-public enum MapCore {
-    public static let scaffoldVersion = "0.0.1"
-}
+// MapCore — declarative SwiftUI wrapper for MapLibre
+// See Architecture/MapVerse.md for API specification

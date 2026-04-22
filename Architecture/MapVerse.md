@@ -14,55 +14,88 @@
 
 **Назначение:** декларативная SwiftUI-обёртка над MapLibre Native с контролем камеры, стилей и жизненного цикла карты.
 
-### Публичный API
+**Статус:** реализован (SCRUM-26). MapLibre Native 6.25.1, MapLibre SwiftUI DSL 0.21.1.
+
+### Реализованный API (SCRUM-26)
 
 ```swift
-public struct FogMap<Content: MapContent>: View {
-    public init(
-        camera: Binding<MapCamera>,
-        styleURL: URL,
-        @MapContentBuilder content: () -> Content
-    )
-    public func onMapLoad(_ action: @escaping (MapController) -> Void) -> Self
-    public func onRegionChange(_ action: @escaping (MapRegion) -> Void) -> Self
+// Камера — value-type, Sendable, Equatable
+public struct MapCamera: Sendable, Equatable {
+    public let center: CLLocationCoordinate2D
+    public let zoom: Double
+    public let bearing: Double
+    public let pitch: Double
+    public static let amsterdam: MapCamera // preset
 }
 
-public struct MapCamera {
-    public var center: CLLocationCoordinate2D
-    public var zoom: Double
-    public var pitch: Double
-    public var bearing: Double
+// Bounding box с MLNCoordinateBounds bridging
+public struct MapBBox: Sendable, Equatable {
+    public let northEast: CLLocationCoordinate2D
+    public let southWest: CLLocationCoordinate2D
+    public func contains(_ coordinate: CLLocationCoordinate2D) -> Bool
+    public func expanded(by factor: Double) -> MapBBox
 }
 
-public protocol MapContent { /* result builder protocol */ }
+// Стиль — URL с Stadia Outdoors и демо-тайлами
+public struct MapStyle: Sendable, Equatable {
+    public let url: URL
+    public static func stadiaOutdoors(apiKey: String) -> MapStyle
+    public static func stadiaOutdoorsFromEnvironment() -> MapStyle?
+    public static let demotiles: MapStyle
+}
 
+// Контент — протокол и result builder
+public protocol MapContent: Sendable {}
+@resultBuilder public enum MapContentBuilder { ... }
+
+// Карта — SwiftUI view с UIViewRepresentable (iOS only)
+public struct MapView<Content: MapContent>: View {
+    public init(camera: Binding<MapCamera>, style: MapStyle,
+                @MapContentBuilder content: () -> Content)
+}
+```
+
+### Планируемый API (будущие задачи)
+
+```swift
+// MapController — escape-hatch к MLNMapView (будет в follow-up)
 public final class MapController {
     public func setCamera(_ camera: MapCamera, animated: Bool)
     public func fit(coordinates: [CLLocationCoordinate2D], padding: EdgeInsets)
     public func snapshot(size: CGSize) async throws -> UIImage
-    public var underlyingMapView: MLNMapView { get } // escape hatch
+    public var underlyingMapView: MLNMapView { get }
 }
+
+// Callbacks — onMapLoad, onRegionChange (будет при необходимости)
 ```
 
 ### Ключевые обязанности
 
-- Обёртка MapLibre через `UIViewRepresentable`, стабильная к перезапускам и smooth при частых `setState`.
-- `MapCamera` как `Equatable` value-type с anim-aware биндингом (если изменилось только `zoom` -- анимируем только zoom).
-- Escape-hatch `underlyingMapView` -- честное признание, что DSL не покроет 100% кейсов.
-- Throttling `onRegionChange` (не чаще 30 Hz) -- предотвращает шторм обновлений при панораме.
-- Контроль жизненного цикла: `applicationWillResignActive` -- приостановить рендер; `didBecomeActive` -- возобновить. Важно для батареи.
+- Обёртка MapLibre через `UIViewRepresentable` + `Coordinator` с `MLNMapViewDelegate`.
+- `MapCamera` как `Equatable` value-type с двусторонним binding (guard `isUpdatingFromBinding`/`isUpdatingFromDelegate` предотвращает feedback loop).
+- `MapStyle` — фабричные методы для Stadia Outdoors (API key из environment) и MapLibre demo tiles (без ключа, для CI/previews).
+- `MapContentBuilder` — result builder для декларативной композиции оверлеев (EmptyMapContent, MapContentGroup, OptionalMapContent, ConditionalMapContent).
+- `MapBBox` — bounding box с MLNCoordinateBounds bridging. HexBBox живёт отдельно в HexGeometry (независимость пакетов); bridging будет в MapFogOfWar.
+- `#if canImport(UIKit)` — view-код iOS-only, value-types кроссплатформенные.
 
 ### Что намеренно НЕ входит
 
 - Провайдеры стилей (Stadia, MapTiler) -- работа уровня приложения.
 - Полилинии, маркеры -- отдельный пакет MapOverlays.
 - Любая логика FogRide.
+- `MapController` — отложен до реальной необходимости (SCRUM-27+).
+- `onRegionChange` throttling — будет добавлен при реализации fog viewport culling.
 
 ### Тесты
 
-- Unit: `MapCamera` equatable/diff, `MapContentBuilder` композиция.
-- Snapshot: SwiftUI preview карты с fixture-стилем на тестовом JSON.
-- Integration (на устройстве): загрузка стиля, fit coordinates, snapshot rendering.
+- 26 тестов в 5 suites (Swift Testing):
+  - `MapCameraTests` (8) — init, equality, inequality, amsterdam preset, Sendable
+  - `MapBBoxTests` (6) — contains, boundary, expanded, equality
+  - `MapStyleTests` (5) — Stadia URL, demo tiles, equality
+  - `MapContentBuilderTests` (5) — empty, single, pair, triple, optional
+  - `MapCoreModuleTests` (1) — module import smoke
+  - `MapFogOfWarTests` (1) — downstream compatibility
+- Preview: `MapView+Preview.swift` с Amsterdam demo tiles и Stadia Outdoors
 
 ---
 
