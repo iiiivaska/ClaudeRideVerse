@@ -142,7 +142,7 @@ final class PrototypeViewModel {
         if isTracking {
             camera = MapCamera(
                 center: location.coordinate,
-                zoom: max(camera.zoom, 14),
+                zoom: camera.zoom,
                 bearing: camera.bearing,
                 pitch: camera.pitch
             )
