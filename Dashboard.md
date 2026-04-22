@@ -6,10 +6,10 @@
 
 | Что | Статус |
 |-----|--------|
-| Фаза | [[Roadmap/_index\|Phase F — Foundation]] (5 из 5 основных задач закрыто) |
-| Завершено | SCRUM-12 (workspace), 17 (CI), 18 (DesignSystem), **19 (privacy)**, **20 (GRDB)** |
-| Следующий шаг | Follow-up (SCRUM-70/71/72) или [[Roadmap/Phase 0 — Prototype\|Phase 0]]: SCRUM-21 HexCore |
-| Follow-up | SCRUM-70 SwiftLint, SCRUM-71 TestFlight, SCRUM-72 snapshot-тесты DesignSystem |
+| Фаза | [[Roadmap/Phase 0 — Prototype\|Phase 0 — Prototype]] (1 из 7 задач закрыто) |
+| Завершено | **SCRUM-21** (HexCore — SwiftyH3 wrapper, 35 тестов) |
+| Следующий шаг | SCRUM-25 [[Architecture/HexKit\|HexGeometry]] — compaction, multipolygon, viewport culling |
+| Phase F | ✅ Полностью завершена: SCRUM-12, 17, 18, 19, 20 |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 
 ## Навигация

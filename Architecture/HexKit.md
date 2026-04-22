@@ -94,15 +94,36 @@ public enum HexError: Error {
 - Не хранит (никакой GRDB, никакого CoreData -- это [[Прочие пакеты|PersistenceCore]]).
 - Не компактует (это HexGeometry).
 
+### Реализация (SCRUM-21, коммит `97abb85`)
+
+**Файлы:** `Packages/HexKit/Sources/HexCore/`
+- `HexResolution.swift` — enum r0-r15 с hardcoded H3 resolution tables (edge/area)
+- `HexCell.swift` — struct(UInt64, HexResolution), init from coord/index, center/boundary/isPentagon
+- `HexCell+Hierarchy.swift` — neighbors(within:), parent(at:), children(at:), gridDistance(to:)
+- `HexCellBatch.swift` — cells(for:resolution:), boundary(of:) via `Sequence<H3Cell>.multiPolygon`
+- `HexMultiPolygon.swift` — Polygon(outer, holes), `@unchecked Sendable`
+- `HexError.swift` — invalidCoordinate, resolutionMismatch, antimeridianCrossing, pentagonEncountered
+
+**Решения:**
+- `HexCell` хранит только `UInt64` + `HexResolution` → автоматически Sendable, координаты computed
+- `@preconcurrency import SwiftyH3` для подавления Sendable warnings из C-библиотеки
+- `HexMultiPolygon.Polygon` — `@unchecked Sendable` (CLLocationCoordinate2D не формально Sendable)
+- Internal `init(trusted:resolution:)` для обёрток SwiftyH3 outputs без повторной валидации
+- Metric properties (averageEdgeMeters, averageAreaSquareMeters) — hardcoded lookup, не runtime H3 calls
+
 ### Тесты
 
-- Unit для каждой операции с фиксированными индексами (из официальных тестов H3).
-- Property-based: `cell.parent(at: r).children(at: cell.resolution).contains(cell)` должно быть true.
-- Тест на пентагонах: для 12 известных индексов r0 -- `isPentagon == true`, соседей ровно 5.
+35 тестов в 6 suites (Swift Testing):
+- **HexResolution** (6): 16 cases, comparable, edge/area spot-check, monotonic decrease
+- **HexCell Init** (6): from coord, valid/invalid index, description, equality, resolution independence
+- **HexCell Properties** (3): center proximity, boundary vertex count (6 hex), isPentagon=false for SF
+- **HexCell Pentagon** (4): 12 r0 pentagons found, isPentagon=true, 5 neighbors, 5 boundary vertices
+- **HexCell Hierarchy** (12): neighbors count/exclusion, parent/children/roundtrip, gridDistance 0/1/nil
+- **HexCellBatch** (4): deduplication, multiple coords, cluster boundary, empty set
 
 ### Зависимости
 
-- SwiftyH3
+- SwiftyH3 0.5.0 (Apache 2.0)
 
 ---
 

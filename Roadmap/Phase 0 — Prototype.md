@@ -15,10 +15,13 @@
 
 ## Задачи (Jira)
 
-- **SCRUM-21** [0.1] [[HexCore]] — SwiftyH3 wrapper (3-4ч)
-  - SCRUM-22 Add SwiftyH3 0.5.0 SPM dependency
-  - SCRUM-23 Create HexCell + HexResolution types
-  - SCRUM-24 HexCell API + unit tests
+- **SCRUM-21** [0.1] [[HexCore]] — SwiftyH3 wrapper (3-4ч) — **DONE** (PR #3, коммит `97abb85`)
+  - SCRUM-22 Add SwiftyH3 0.5.0 SPM dependency — **DONE**
+  - SCRUM-23 Create HexCell + HexResolution types — **DONE**
+  - SCRUM-24 HexCell API + unit tests — **DONE**
+  - 6 source files, 35 тестов в 6 suites (Swift Testing), pentagon edge cases покрыты
+  - Типы: `HexCell` (Hashable, Sendable), `HexResolution` (r0-r15), `HexMultiPolygon`, `HexError`, `HexCellBatch`
+  - API: center/boundary/isPentagon, neighbors/parent/children/gridDistance, cellsToMultiPolygon
 - **SCRUM-25** [0.2] [[HexGeometry]] — compaction, multipolygon, viewport culling (3-4ч)
 - **SCRUM-26** [0.3] [[MapCore]] — MapLibre SwiftUI wrapper + Stadia Outdoors (3-4ч)
 - **SCRUM-27** [0.4] [[MapFogOfWar]] — inverted MultiPolygon (4-5ч)
