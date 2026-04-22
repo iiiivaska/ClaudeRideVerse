@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "LocationKit",
-    platforms: [.iOS(.v26), .macOS(.v26)],
+    platforms: [.iOS(.v26), .macOS(.v15)],
     products: [
         .library(name: "LocationRecording", targets: ["LocationRecording"]),
     ],
