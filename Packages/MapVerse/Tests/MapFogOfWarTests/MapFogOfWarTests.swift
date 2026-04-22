@@ -41,30 +41,33 @@ private func makeCellSet(
 @Suite("FogResolutionPolicy")
 struct FogResolutionPolicyTests {
 
-    @Test func highZoomReturnsR9() {
-        #expect(FogResolutionPolicy.resolution(forZoom: 15) == .r9)
-        #expect(FogResolutionPolicy.resolution(forZoom: 18) == .r9)
-        #expect(FogResolutionPolicy.resolution(forZoom: 20) == .r9)
+    @Test func highZoomReturnsR10() {
+        #expect(FogResolutionPolicy.resolution(forZoom: 14) == .r10)
+        #expect(FogResolutionPolicy.resolution(forZoom: 18) == .r10)
+        #expect(FogResolutionPolicy.resolution(forZoom: 20) == .r10)
     }
 
-    @Test func mediumZoomReturnsR7() {
-        #expect(FogResolutionPolicy.resolution(forZoom: 10) == .r7)
-        #expect(FogResolutionPolicy.resolution(forZoom: 12) == .r7)
-        #expect(FogResolutionPolicy.resolution(forZoom: 14) == .r7)
+    @Test func mediumZoomReturnsR8orR9() {
+        #expect(FogResolutionPolicy.resolution(forZoom: 12) == .r9)
+        #expect(FogResolutionPolicy.resolution(forZoom: 13) == .r9)
+        #expect(FogResolutionPolicy.resolution(forZoom: 10) == .r8)
+        #expect(FogResolutionPolicy.resolution(forZoom: 11) == .r8)
     }
 
-    @Test func lowZoomReturnsR5() {
-        #expect(FogResolutionPolicy.resolution(forZoom: 9.9) == .r5)
+    @Test func lowZoomReturnsCoarseResolution() {
+        #expect(FogResolutionPolicy.resolution(forZoom: 9) == .r7)
+        #expect(FogResolutionPolicy.resolution(forZoom: 7) == .r6)
         #expect(FogResolutionPolicy.resolution(forZoom: 5) == .r5)
-        #expect(FogResolutionPolicy.resolution(forZoom: 0) == .r5)
+        #expect(FogResolutionPolicy.resolution(forZoom: 3) == .r4)
+        #expect(FogResolutionPolicy.resolution(forZoom: 1) == .r3)
     }
 
-    @Test func boundaryZoom14IsR7() {
-        #expect(FogResolutionPolicy.resolution(forZoom: 14) == .r7)
+    @Test func boundaryZoom14IsR10() {
+        #expect(FogResolutionPolicy.resolution(forZoom: 14) == .r10)
     }
 
-    @Test func justAbove14IsR9() {
-        #expect(FogResolutionPolicy.resolution(forZoom: 14.01) == .r9)
+    @Test func justBelow14IsR9() {
+        #expect(FogResolutionPolicy.resolution(forZoom: 13.99) == .r9)
     }
 }
 
