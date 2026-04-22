@@ -35,6 +35,9 @@ Packages/*/.swiftpm/
 *.swo
 *~
 
+## Claude Code worktrees
+.claude/worktrees/
+
 ## Secrets
 .env
 .env.local
