@@ -21,6 +21,12 @@ struct PrototypeView: View {
         .onChange(of: viewModel.visibleBBox) { _, _ in
             viewModel.handleVisibleBoundsChange()
         }
+        .sheet(item: $viewModel.rideSummary) { summary in
+            RideSummaryView(summary: summary) {
+                viewModel.dismissSummary()
+            }
+            .interactiveDismissDisabled()
+        }
     }
 
     // MARK: - Map Layer
@@ -29,8 +35,11 @@ struct PrototypeView: View {
         PrototypeMapView(
             camera: $viewModel.camera,
             visibleBBox: $viewModel.visibleBBox,
+            userLocation: $viewModel.mapUserLocation,
             style: mapStyle,
             fogFeatures: viewModel.fogFeatures,
+            trackCoordinates: viewModel.trackCoordinates,
+            isTracking: viewModel.isTracking,
             onUserGesture: { viewModel.userDidPan() }
         )
         .ignoresSafeArea()
@@ -38,47 +47,87 @@ struct PrototypeView: View {
 
     // MARK: - Overlay UI
 
-    private var overlayUI: some View {
-        VStack(spacing: FogSpacing.m) {
-            hexCounterPill
-                .padding(.top, FogSpacing.s)
-
-            Spacer()
-
-            if viewModel.recordingState == .recording {
-                recordingHUD
-            }
-
-            bottomControls
-                .padding(.bottom, FogSpacing.m)
-        }
-        .padding(.horizontal, FogSpacing.m)
+    private var isRecording: Bool {
+        viewModel.recordingState == .recording || viewModel.recordingState == .paused
     }
 
-    // MARK: - Hex Counter
+    private var overlayUI: some View {
+        ZStack {
+            VStack(spacing: FogSpacing.m) {
+                topBar
+                    .padding(.top, FogSpacing.s)
 
-    private var hexCounterPill: some View {
+                Spacer()
+
+                if isRecording {
+                    recordingHUD
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+
+                bottomControls
+                    .padding(.bottom, FogSpacing.m)
+            }
+            .padding(.horizontal, FogSpacing.m)
+
+            // Recenter button — right edge (always visible unless actively tracking)
+            if !viewModel.isTracking || !isRecording {
+                VStack {
+                    Spacer()
+                        .frame(maxHeight: .infinity)
+                    recenterButton
+                    Spacer()
+                        .frame(maxHeight: .infinity)
+                    Spacer()
+                        .frame(maxHeight: .infinity)
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, FogSpacing.m)
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.35), value: isRecording)
+        .animation(.easeOut(duration: 0.25), value: viewModel.isTracking)
+    }
+
+    // MARK: - Top Bar
+
+    private var topBar: some View {
         HStack(spacing: FogSpacing.s) {
             GlassPill {
                 Image(systemName: "hexagon.fill")
                     .foregroundStyle(Color.fogAccent)
                 MonoVal("\(viewModel.hexCount)", size: .lg, color: .fogAccent)
+                    .contentTransition(.numericText())
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.hexCount)
                 MonoLabel("HEX")
             }
 
-            if viewModel.recordingState == .recording {
+            if isRecording {
+                recPill
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            } else if viewModel.gpsState == .searching {
                 GlassPill {
-                    Image(systemName: "record.circle")
-                        .foregroundStyle(Color.fogRed)
-                    MonoVal(formattedTime, size: .md, color: .fogTextPrimary)
+                    ProgressView()
+                        .tint(Color.fogAccent)
+                        .controlSize(.small)
+                    MonoVal("GPS...", size: .sm, color: .fogTextSecondary)
                 }
+                .transition(.opacity)
             }
 
             Spacer()
+        }
+    }
 
-            if viewModel.recordingState == .recording, !viewModel.isTracking {
-                recenterButton
-            }
+    // MARK: - REC Pill
+
+    private var recPill: some View {
+        GlassPill {
+            RecPulseDot()
+            MonoVal(viewModel.isPaused ? "PAUSED" : "REC", size: .sm, color: .fogTextPrimary)
+            Text("\u{00B7}")
+                .foregroundStyle(Color.fogTextTertiary)
+            MonoVal(formattedTime, size: .sm, color: .fogTextPrimary)
         }
     }
 
@@ -86,17 +135,12 @@ struct PrototypeView: View {
 
     private var recordingHUD: some View {
         GlassHUDCard {
-            HStack(spacing: FogSpacing.l) {
-                VStack(spacing: FogSpacing.xxs) {
-                    MonoVal("\(viewModel.hexCount)", size: .xl, color: .fogAccent)
-                    MonoLabel("HEX")
-                }
-                VStack(spacing: FogSpacing.xxs) {
-                    MonoVal(formattedTime, size: .xl, color: .fogTextPrimary)
-                    MonoLabel("TIME")
-                }
-            }
-            .frame(maxWidth: .infinity)
+            MetricCell4Grid(cells: [
+                .init(value: formattedSpeed, label: "KM/H"),
+                .init(value: "\(viewModel.hexCount)", label: "HEX", valueColor: .fogAccent),
+                .init(value: formattedDistance, label: "KM"),
+                .init(value: formattedTime, label: "TIME"),
+            ])
         }
     }
 
@@ -106,12 +150,34 @@ struct PrototypeView: View {
     private var bottomControls: some View {
         if viewModel.recordingState == .idle {
             Button("Start Ride", systemImage: "bicycle") {
-                viewModel.startRecording()
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    viewModel.startRecording()
+                }
             }
             .buttonStyle(.fogPrimary)
         } else {
-            StopButton {
-                viewModel.stopRecording()
+            HStack(spacing: FogSpacing.m) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        if viewModel.isPaused {
+                            viewModel.resumeRecording()
+                        } else {
+                            viewModel.pauseRecording()
+                        }
+                    }
+                } label: {
+                    Label(
+                        viewModel.isPaused ? "Resume" : "Pause",
+                        systemImage: viewModel.isPaused ? "play.fill" : "pause.fill"
+                    )
+                }
+                .buttonStyle(.fogSecondary)
+
+                StopButton {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        viewModel.stopRecording()
+                    }
+                }
             }
         }
     }
@@ -122,13 +188,13 @@ struct PrototypeView: View {
         Button {
             viewModel.recenter()
         } label: {
-            Image(systemName: "location.fill")
-                .font(.fogBody)
-                .foregroundStyle(Color.fogAccent)
-                .frame(width: 44, height: 44)
+            GlassCircle {
+                Image(systemName: "location.fill")
+                    .font(.fogBody)
+                    .foregroundStyle(Color.fogAccent)
+            }
         }
-        .clipShape(.rect(cornerRadius: FogRadius.pill, style: .continuous))
-        .fogGlass(level: .control)
+        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers
@@ -137,6 +203,15 @@ struct PrototypeView: View {
         let minutes = viewModel.elapsedSeconds / 60
         let seconds = viewModel.elapsedSeconds % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+
+    private var formattedSpeed: String {
+        String(format: "%.1f", viewModel.speed)
+    }
+
+    private var formattedDistance: String {
+        let km = viewModel.totalDistance / 1000
+        return km >= 10 ? String(format: "%.0f", km) : String(format: "%.1f", km)
     }
 }
 

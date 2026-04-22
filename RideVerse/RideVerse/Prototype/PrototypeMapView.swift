@@ -13,8 +13,11 @@ struct PrototypeMapView: UIViewRepresentable {
 
     @Binding var camera: MapCamera
     @Binding var visibleBBox: MapBBox?
+    @Binding var userLocation: CLLocationCoordinate2D?
     let style: MapStyle
     let fogFeatures: [MLNPolygonFeature]?
+    let trackCoordinates: [CLLocationCoordinate2D]
+    let isTracking: Bool
     let onUserGesture: () -> Void
 
     // MARK: - UIViewRepresentable
@@ -54,6 +57,7 @@ struct PrototypeMapView: UIViewRepresentable {
         // Update fog source when GeoJSON changes
         if coordinator.isStyleLoaded {
             coordinator.updateFog(on: mapView, features: fogFeatures)
+            coordinator.updateTrack(on: mapView, coordinates: trackCoordinates)
         }
     }
 
@@ -86,6 +90,7 @@ extension PrototypeMapView {
 
         var isUpdatingFromBinding = false
         var isStyleLoaded = false
+        var hasInitiallyCentered = false
 
         /// Snapshot of the camera value that the delegate last pushed into the
         /// SwiftUI binding. `updateUIView` compares against this to decide
@@ -96,6 +101,11 @@ extension PrototypeMapView {
 
         private static let fogSourceID = "fog-source"
         private static let fogLayerID = "fog-layer"
+        private static let trackSourceID = "track-source"
+        private static let trackHaloLayerID = "track-halo"
+        private static let trackLineLayerID = "track-line"
+        private static let startMarkerSourceID = "start-marker-source"
+        private static let startMarkerLayerID = "start-marker-layer"
 
         /// Wall-clock throttle for live-region updates. ~30 Hz is well below
         /// MLNMapView's 60 Hz pan/zoom cadence and unnoticeable visually,
@@ -112,8 +122,51 @@ extension PrototypeMapView {
         nonisolated func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
             MainActor.assumeIsolated {
                 isStyleLoaded = true
+                installTrackLayers(on: mapView, style: style)
                 installHexGrid(on: mapView, style: style)
                 updateFog(on: mapView, features: parent.fogFeatures)
+                updateTrack(on: mapView, coordinates: parent.trackCoordinates)
+            }
+        }
+
+        // MARK: Initial Location Centering
+
+        nonisolated func mapView(_ mapView: MLNMapView, didUpdate userLocation: MLNUserLocation?) {
+            guard let coord = userLocation?.coordinate,
+                  CLLocationCoordinate2DIsValid(coord)
+            else { return }
+
+            let lat = coord.latitude
+            let lon = coord.longitude
+
+            MainActor.assumeIsolated {
+                let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                parent.userLocation = coordinate
+
+                // Follow user during tracking (sticky mode)
+                if parent.isTracking {
+                    let newCamera = MapCamera(
+                        center: coordinate,
+                        zoom: parent.camera.zoom,
+                        bearing: parent.camera.bearing,
+                        pitch: parent.camera.pitch
+                    )
+                    parent.camera = newCamera
+                    lastSyncedCamera = newCamera
+                    return
+                }
+
+                // Initial centering on first fix
+                guard !hasInitiallyCentered else { return }
+                hasInitiallyCentered = true
+                let newCamera = MapCamera(
+                    center: coordinate,
+                    zoom: parent.camera.zoom,
+                    bearing: parent.camera.bearing,
+                    pitch: parent.camera.pitch
+                )
+                parent.camera = newCamera
+                lastSyncedCamera = newCamera
             }
         }
 
@@ -247,6 +300,69 @@ extension PrototypeMapView {
 
             let collection = MLNShapeCollectionFeature(shapes: features)
             source.shape = collection
+        }
+
+        // MARK: Track Rendering
+
+        private func installTrackLayers(on mapView: MLNMapView, style: MLNStyle) {
+            guard style.source(withIdentifier: Self.trackSourceID) == nil else { return }
+
+            // Track polyline source
+            let trackSource = MLNShapeSource(identifier: Self.trackSourceID, shape: nil, options: nil)
+            style.addSource(trackSource)
+
+            // Halo layer — wider, semi-transparent accent
+            let halo = MLNLineStyleLayer(identifier: Self.trackHaloLayerID, source: trackSource)
+            halo.lineColor = NSExpression(forConstantValue: UIColor(red: 10 / 255, green: 132 / 255, blue: 255 / 255, alpha: 0.44))
+            halo.lineWidth = NSExpression(forConstantValue: 7)
+            halo.lineCap = NSExpression(forConstantValue: "round")
+            halo.lineJoin = NSExpression(forConstantValue: "round")
+            style.addLayer(halo)
+
+            // Core line — thin, full-opacity accent
+            let core = MLNLineStyleLayer(identifier: Self.trackLineLayerID, source: trackSource)
+            core.lineColor = NSExpression(forConstantValue: UIColor(red: 10 / 255, green: 132 / 255, blue: 255 / 255, alpha: 1.0))
+            core.lineWidth = NSExpression(forConstantValue: 2.5)
+            core.lineCap = NSExpression(forConstantValue: "round")
+            core.lineJoin = NSExpression(forConstantValue: "round")
+            style.addLayer(core)
+
+            // Start marker source
+            let markerSource = MLNShapeSource(identifier: Self.startMarkerSourceID, shape: nil, options: nil)
+            style.addSource(markerSource)
+
+            let marker = MLNCircleStyleLayer(identifier: Self.startMarkerLayerID, source: markerSource)
+            marker.circleColor = NSExpression(forConstantValue: UIColor(red: 48 / 255, green: 209 / 255, blue: 88 / 255, alpha: 1.0))
+            marker.circleRadius = NSExpression(forConstantValue: 5)
+            marker.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+            marker.circleStrokeWidth = NSExpression(forConstantValue: 1.5)
+            style.addLayer(marker)
+        }
+
+        func updateTrack(on mapView: MLNMapView, coordinates: [CLLocationCoordinate2D]) {
+            guard let style = mapView.style else { return }
+
+            // Update track polyline
+            if let trackSource = style.source(withIdentifier: Self.trackSourceID) as? MLNShapeSource {
+                if coordinates.count >= 2 {
+                    var coords = coordinates
+                    let polyline = MLNPolylineFeature(coordinates: &coords, count: UInt(coords.count))
+                    trackSource.shape = polyline
+                } else {
+                    trackSource.shape = nil
+                }
+            }
+
+            // Update start marker
+            if let markerSource = style.source(withIdentifier: Self.startMarkerSourceID) as? MLNShapeSource {
+                if let first = coordinates.first {
+                    let point = MLNPointFeature()
+                    point.coordinate = first
+                    markerSource.shape = point
+                } else {
+                    markerSource.shape = nil
+                }
+            }
         }
     }
 }
