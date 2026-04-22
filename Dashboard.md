@@ -11,6 +11,7 @@
 | Приложение | **TraVerse** (com.iiiivaska.TraVerse), TestFlight сборка 1.1 загружена |
 | Следующий шаг | SCRUM-31 [1.1] LocationKit full — фильтрация, анализ, motion, фоновая запись |
 | SCRUM-30 | Перенесён в EPIC-1: TestFlight распространение MVP после завершения Phase 1 |
+| SCRUM-74 | [EPIC-DT] Debug Panel — DevTools (7 задач: SCRUM-75–81) |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 
 ## Навигация

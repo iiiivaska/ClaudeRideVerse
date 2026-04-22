@@ -43,6 +43,15 @@
 - **SCRUM-30** [1.16] TestFlight релиз MVP + публикация + сбор фидбэка + go/no-go (перенесён из Phase 0, prep done)
 - **SCRUM-73** Перенести API-ключи в CloudKit Remote Config
 
+### DevTools (EPIC-DT: SCRUM-74)
+- **SCRUM-75** Beta build config + DEBUG_PANEL active compilation condition
+- **SCRUM-76** DebugPanelView scaffold + gear button entry point
+- **SCRUM-77** Resets section: онбординг, hex cache, БД, Reset All
+- **SCRUM-78** GPS Diagnostics section: live location dashboard
+- **SCRUM-79** Build Info section + Copy All для баг-репортов
+- **SCRUM-80** FeatureFlagManager + Feature Flags section
+- **SCRUM-81** os.Logger infrastructure + Log Viewer section
+
 ## Ключевые решения
 
 - Freemium-модель: бесплатный трекер + платный fog of war и расширенная статистика
