@@ -22,8 +22,8 @@
   - SCRUM-14 Create SPM packages Phase 0 — **DONE**
   - SCRUM-15 Enable Swift 6 Approachable Concurrency — **DONE**
   - SCRUM-16 Git + .gitignore + README — **DONE**
-- **SCRUM-17** [F.2] CI — build + test (GitHub Actions, 2-3ч) — **IN PROGRESS**
-  - _Scope-change:_ Xcode Cloud недоступен для текущего Apple Developer аккаунта, переключено на GitHub Actions hosted macOS runner. TestFlight-деплой вынесен в отдельный follow-up тикет.
+- **SCRUM-17** [F.2] CI — build + test (GitHub Actions, 2-3ч) — **DONE** (PR #1, коммит `4a07ee8`)
+  - _Scope-change:_ Xcode Cloud недоступен для текущего Apple Developer аккаунта, переключено на GitHub Actions hosted macOS runner. TestFlight-деплой вынесен в отдельный follow-up тикет ([[#Follow-up|см. ниже]]).
   - Детали: [[CI]]
 - **SCRUM-18** [F.3] DesignSystem — Liquid Glass tokens + components (18-20ч) — **самая крупная задача фазы**
 - **SCRUM-19** [F.4] Info.plist + PrivacyInfo + Capabilities (2-3ч)
@@ -31,8 +31,8 @@
 
 ### Follow-up (созданы во время SCRUM-17)
 
-- **SwiftLint config + zero warnings baseline** (2-3ч) — добавить `.swiftlint.yml` и шаг линтинга в CI
-- **TestFlight auto-deploy on tag v\*** (3-4ч) — Fastlane/pilot или `xcrun altool`, секреты ASC API key в GitHub Actions
+- **SCRUM-70** [F.2+] SwiftLint config + zero warnings baseline (2-3ч) — добавить `.swiftlint.yml` и шаг линтинга в CI
+- **SCRUM-71** [F.2+] TestFlight auto-deploy on tag v\* (3-4ч) — `xcrun altool --upload-app`, секреты ASC API key в GitHub Actions
 
 ## Ключевые решения
 

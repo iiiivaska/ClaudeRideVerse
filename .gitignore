@@ -6,6 +6,11 @@
 *.xcuserstate
 *.xcscmblueprint
 
+## Xcode 26 auto-generates a duplicate workspace-level scheme next to the
+## project-level one under RideVerse.xcodeproj/xcshareddata/. Ignore the
+## workspace copy — project-level is the source of truth.
+RideVerse.xcworkspace/xcshareddata/
+
 ## Xcode build output
 DerivedData/
 build/
