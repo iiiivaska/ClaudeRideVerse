@@ -1,3 +1,2 @@
-public enum HexCore {
-    public static let scaffoldVersion = "0.0.1"
-}
+// HexCore — type-safe H3 hexagonal grid wrapper
+// See Architecture/HexKit.md for API specification

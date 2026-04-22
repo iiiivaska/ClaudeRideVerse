@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "MapVerse",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .macOS(.v26)],
     products: [
         .library(name: "MapCore", targets: ["MapCore"]),
         .library(name: "MapFogOfWar", targets: ["MapFogOfWar"]),

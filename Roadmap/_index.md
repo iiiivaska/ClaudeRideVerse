@@ -4,15 +4,15 @@
 
 ## Текущий статус
 
-**Активная фаза:** [[Phase F — Foundation]]
-**Прогресс:** выполнена единственная задача SCRUM-13 (создание workspace + app target). Проект пока не импортирован в workspace.
+**Активная фаза:** [[Phase 0 — Prototype]]
+**Прогресс:** SCRUM-21 (HexCore) завершён. Следующий: SCRUM-25 (HexGeometry).
 
 ## Фазы
 
 | Фаза | Название | Длительность | Статус | Go/No-Go критерий |
 |------|----------|-------------|--------|-------------------|
-| [[Phase F — Foundation\|F]] | Foundation | 1-2 недели | **В работе** | Skeleton собирается, CI зелёный, DesignSystem готов |
-| [[Phase 0 — Prototype\|0]] | Prototype | 3-4 недели | Ожидает | 500+ upvotes на видео, 20-30 pre-orders |
+| [[Phase F — Foundation\|F]] | Foundation | 1-2 недели | ✅ **Готово** | Skeleton собирается, CI зелёный, DesignSystem готов |
+| [[Phase 0 — Prototype\|0]] | Prototype | 3-4 недели | **В работе** | 500+ upvotes на видео, 20-30 pre-orders |
 | [[Phase 1 — MVP\|1]] | MVP | ~3 недели (150-160ч) | Ожидает | Go-решение по Phase 0 |
 | [[Phase 2 — Social\|2]] | Social | 8-10 недель | Ожидает | 500+ WAU |
 | [[Phase 3 — Backend\|3]] | Backend | 12-14 недель | Ожидает | 3000+ WAU, 8%+ конверсия, $2000+ MRR |
