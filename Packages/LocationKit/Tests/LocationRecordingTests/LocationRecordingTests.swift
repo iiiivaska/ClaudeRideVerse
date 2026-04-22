@@ -19,6 +19,15 @@ struct MockLocationSource: LocationSource, Sendable {
     }
 }
 
+/// A source that returns a pre-built stream, giving the test direct
+/// control over the continuation for deterministic sequencing.
+struct DirectMockSource: LocationSource, Sendable {
+    let stream: AsyncThrowingStream<RawLocation, any Error>
+    func startUpdates(
+        configuration: RecordingConfiguration
+    ) -> AsyncThrowingStream<RawLocation, any Error> { stream }
+}
+
 /// Creates a ``RawLocation`` with sensible defaults for testing.
 func makeLocation(
     latitude: Double = 55.7558,
@@ -296,43 +305,45 @@ struct LocationRecorderTests {
 
     @Test("paused locations are skipped")
     func pausedLocationsAreSkipped() async throws {
-        let first = makeLocation(latitude: 1, longitude: 1)
+        let loc1 = makeLocation(latitude: 1, longitude: 1)
         let pausedLoc = makeLocation(latitude: 2, longitude: 2)
-        let resumed = makeLocation(latitude: 3, longitude: 3)
+        let resumedLoc = makeLocation(latitude: 3, longitude: 3)
 
+        // Use DirectMockSource so the test controls exactly when
+        // locations arrive via the continuation — no timing races.
+        let (sourceStream, sourceCont) = AsyncThrowingStream<RawLocation, any Error>.makeStream()
         let recorder = LocationRecorder(
-            source: MockLocationSource { continuation in
-                Task {
-                    continuation.yield(first)
-                    // Give the recorder time to process and pause.
-                    try? await Task.sleep(for: .milliseconds(50))
-                    continuation.yield(pausedLoc)
-                    try? await Task.sleep(for: .milliseconds(50))
-                    continuation.yield(resumed)
-                    try? await Task.sleep(for: .milliseconds(50))
-                    continuation.finish()
-                }
-            }
+            source: DirectMockSource(stream: sourceStream)
         )
 
-        let stream = await recorder.start()
-        var received: [RawLocation] = []
+        let outputStream = await recorder.start()
 
-        for try await loc in stream {
+        // 1. Yield before pause — should pass through.
+        sourceCont.yield(loc1)
+        try await Task.sleep(for: .milliseconds(30))
+
+        // 2. Pause, then yield — should be skipped.
+        await recorder.pause()
+        sourceCont.yield(pausedLoc)
+        try await Task.sleep(for: .milliseconds(30))
+
+        // 3. Resume, then yield — should pass through.
+        await recorder.resume()
+        sourceCont.yield(resumedLoc)
+        try await Task.sleep(for: .milliseconds(30))
+
+        // 4. Finish the source so the output stream ends.
+        sourceCont.finish()
+
+        // Collect everything that made it through.
+        var received: [RawLocation] = []
+        for try await loc in outputStream {
             received.append(loc)
-            if received.count == 1 {
-                // Pause after receiving first location.
-                await recorder.pause()
-                // Wait, then resume to pick up the third.
-                try? await Task.sleep(for: .milliseconds(80))
-                await recorder.resume()
-            }
         }
 
-        // Should have first and resumed, but not pausedLoc.
-        #expect(received.contains(first))
-        #expect(received.contains(resumed))
+        #expect(received.contains(loc1))
         #expect(!received.contains(pausedLoc))
+        #expect(received.contains(resumedLoc))
     }
 
     @Test("error propagates to stream and state")
