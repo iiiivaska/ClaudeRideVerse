@@ -29,6 +29,7 @@ let package = Package(
             dependencies: [
                 "MapCore",
                 .product(name: "HexCore", package: "HexKit"),
+                .product(name: "HexGeometry", package: "HexKit"),
             ],
             swiftSettings: [
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
@@ -41,7 +42,11 @@ let package = Package(
         ),
         .testTarget(
             name: "MapFogOfWarTests",
-            dependencies: ["MapFogOfWar"]
+            dependencies: [
+                "MapFogOfWar",
+                .product(name: "HexCore", package: "HexKit"),
+                .product(name: "HexGeometry", package: "HexKit"),
+            ]
         ),
     ],
     swiftLanguageModes: [.v6]

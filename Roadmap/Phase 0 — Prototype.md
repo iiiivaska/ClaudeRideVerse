@@ -39,7 +39,14 @@
   - `MapViewRepresentable` — MLNMapView обёртка с двусторонним camera binding (guard от feedback loop)
   - HexBBox остаётся в HexGeometry (независимость пакетов); bridging в SCRUM-27
   - 26 тестов в 5 suites (MapCamera, MapBBox, MapStyle, MapContentBuilder, module smoke)
-- **SCRUM-27** [0.4] [[MapFogOfWar]] — inverted MultiPolygon (4-5ч)
+- **SCRUM-27** [0.4] [[MapFogOfWar]] — inverted MultiPolygon (4-5ч) — **DONE** (ветка `SCRUM-27`)
+  - `VisitedCells` protocol: H3-aware contract returning `HexCellSet` for viewport + zoom
+  - `FogGeoJSONBuilder`: inverted MultiPolygon GeoJSON (world frame exterior + hex outer rings as holes + re-fog patches for inner holes)
+  - `FogResolutionPolicy`: zoom > 14 → r9, 10-14 → r7, < 10 → r5
+  - `FogLayer: MapContent` с `geoJSON(in:atZoom:)` для MapLibre `MLNShapeSource`
+  - `FogStyle`: fogColor, opacity, edgeColor, pulseNewCells
+  - `FogUpdateThrottle`: actor-based rate limiter (default 1/sec)
+  - 23 теста в 5 suites (FogResolutionPolicy, FogStyle, FogGeoJSONBuilder, FogLayer, FogUpdateThrottle)
 - **SCRUM-28** [0.5] [[LocationRecording]] — minimal foreground version (2-3ч)
 - **SCRUM-29** [0.6] PrototypeApp — map + fog + Start/Stop screen (3-4ч код + 2-3ч полевые тесты)
 - **SCRUM-30** [0.7] TestFlight + публикация + feedback + go/no-go решение (4-6ч + 1-2 недели ожидания)
