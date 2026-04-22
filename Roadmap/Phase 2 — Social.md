@@ -12,6 +12,20 @@
 
 ## Задачи (Jira)
 
+### 2.0 Visual foundation (до CloudKit)
+
+- **SCRUM-96** [2.0] **Epic: Heatmap собственных треков и плотность хексов ("вытоптанные тропы")** — M
+  - SCRUM-97 Domain: `CellVisitCount` + `TrackSegmentDensity` (SwiftData)
+  - SCRUM-98 `TrackDensityAggregator` с дедупликацией и throttle
+  - SCRUM-99 MapOverlays: `TrackDensityLayer` (data-driven brightness)
+  - SCRUM-100 MapFogOfWar: `visitCount` + data-driven fill-color
+  - SCRUM-101 Design: токены + спек "Плотность треков" (Pencil + Obsidian)
+  - SCRUM-102 Settings: 2 toggle + performance guardrails
+
+> Визуальная полировка карты **до** старта Social — пользовательский опыт "карты моих путешествий" становится насыщеннее, прежде чем добавим друзей. Работает только на собственных треках; shared-варианты — после SCRUM-52/56.
+
+### 2.1+ CloudKit / Social
+
 - **SCRUM-50** [2.1] CloudKit Setup & Schema — M, P0
 - **SCRUM-51** [2.2] Sign in with Apple + User Identity — M, P0
 - **SCRUM-52** [2.3] Multi-device Sync of Personal Trips — L, P0
