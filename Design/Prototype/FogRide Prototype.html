@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FogRide — Prototype</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100vh;background:#111;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px;font-family:'DM Sans',sans-serif}
+button{font-family:'DM Sans',sans-serif;outline:none}
+button:active{opacity:0.8;transform:scale(0.97)}
+@keyframes rPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,69,58,0.6)}70%{box-shadow:0 0 0 7px rgba(255,69,58,0)}}
+@keyframes locPulse{0%{r:10;opacity:0.4}100%{r:22;opacity:0}}
+@keyframes hexGlow{0%,100%{opacity:0.6}50%{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── iOS DEVICE FRAME (inlined) ─────────────────────────────────
+function IOSStatusBar({ time = '9:41' }) {
+  const c = '#fff';
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 28px 10px', position:'relative', zIndex:20, width:'100%', pointerEvents:'none' }}>
+      <span style={{ fontFamily:'-apple-system,system-ui', fontWeight:600, fontSize:16, color:c }}>{time}</span>
+      <div style={{ position:'absolute', top:10, left:'50%', transform:'translateX(-50%)', width:120, height:34, background:'#000', borderRadius:20 }}/>
+      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill={c}><rect x="0" y="7" width="3" height="5" rx="0.8" opacity="0.4"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="0.8" opacity="0.6"/><rect x="9" y="2" width="3" height="10" rx="0.8" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="0.8"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round"><path d="M1 4.5C3.5 2 6.5 0.5 8 0.5s4.5 1.5 7 4" opacity="0.4"/><path d="M3 7.5C4.7 5.8 6.3 5 8 5s3.3 0.8 5 2.5"/><circle cx="8" cy="11" r="1" fill={c} stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill={c}><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke={c} strokeOpacity="0.35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="1.5"/><path d="M23 4v4a2 2 0 000-4z" opacity="0.4"/></svg>
+      </div>
+    </div>
+  );
+}
+
+function IOSDevice({ children, width=402, height=874, dark=false }) {
+  return (
+    <div style={{ width, height, borderRadius:48, overflow:'hidden', position:'relative', background: dark?'#000':'#F2F2F7', boxShadow:'0 40px 80px rgba(0,0,0,0.4),0 0 0 1px rgba(0,0,0,0.2)', fontFamily:'-apple-system,system-ui,sans-serif', WebkitFontSmoothing:'antialiased' }}>
+      {/* Dynamic Island */}
+      <div style={{ position:'absolute', top:11, left:'50%', transform:'translateX(-50%)', width:126, height:37, borderRadius:24, background:'#000', zIndex:50 }}/>
+      {/* Status bar */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:30 }}>
+        <IOSStatusBar/>
+      </div>
+      {/* Home indicator */}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:60, height:34, display:'flex', justifyContent:'center', alignItems:'flex-end', paddingBottom:8, pointerEvents:'none' }}>
+        <div style={{ width:134, height:5, borderRadius:100, background: dark?'rgba(255,255,255,0.65)':'rgba(0,0,0,0.22)' }}/>
+      </div>
+      {/* Content */}
+      <div style={{ height:'100%', overflow:'hidden' }}>{children}</div>
+    </div>
+  );
+}
+
+// ── TOKENS ────────────────────────────────────────────────────
+const T = {
+  bg:'#000',bg1:'#1C1C1E',bg2:'#2C2C2E',bg3:'#3A3A3C',
+  sep:'rgba(255,255,255,0.08)',sepS:'rgba(255,255,255,0.14)',
+  tp:'#fff',ts:'rgba(235,235,245,0.80)',tt:'rgba(235,235,245,0.55)',tq:'rgba(235,235,245,0.28)',
+  acc:'#0A84FF',accS:'rgba(10,132,255,0.15)',accB:'rgba(10,132,255,0.35)',
+  green:'#30D158',greenS:'rgba(48,209,88,0.12)',
+  red:'#FF453A',orange:'#FF9F0A',yellow:'#FFD60A',
+  glass:'rgba(22,22,24,0.86)',glassB:'rgba(255,255,255,0.10)',
+  sans:"'DM Sans',sans-serif",mono:"'IBM Plex Mono',monospace",
+};
+
+const hexPts=(cx,cy,r)=>Array.from({length:6},(_,i)=>{
+  const a=Math.PI/180*(60*i-30);
+  return `${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`;
+}).join(' ');
+
+// ── SHARED PRIMITIVES ─────────────────────────────────────────
+const MonoLabel=({children,style={}})=>(
+  <span style={{fontFamily:T.mono,fontSize:9,fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',color:T.tq,...style}}>{children}</span>
+);
+const MonoVal=({children,color=T.tp,size=22,style={}})=>(
+  <span style={{fontFamily:T.mono,fontSize:size,fontWeight:600,lineHeight:1,color,...style}}>{children}</span>
+);
+const SectionLabel=({children})=>(
+  <div style={{fontFamily:T.mono,fontSize:9,fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',color:T.tq,padding:'16px 20px 6px'}}>{children}</div>
+);
+
+function Toggle({on,onToggle}){
+  return(
+    <div onClick={onToggle} style={{width:51,height:31,borderRadius:100,background:on?T.acc:T.bg3,cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+      <div style={{position:'absolute',top:2,left:on?22:2,width:27,height:27,borderRadius:'50%',background:'#fff',boxShadow:'0 2px 8px rgba(0,0,0,0.35)',transition:'left 0.2s'}}/>
+    </div>
+  );
+}
+
+function GlassCircle({children,size=36,onClick,style={}}){
+  return(
+    <button onClick={onClick} style={{width:size,height:size,borderRadius:'50%',background:T.glass,backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',border:`1px solid ${T.glassB}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0,...style}}>
+      {children}
+    </button>
+  );
+}
+
+function GlassPill({children,style={},onClick}){
+  return(
+    <div onClick={onClick} style={{background:T.glass,backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',border:`1px solid ${T.glassB}`,borderRadius:100,padding:'8px 14px',display:'flex',alignItems:'center',gap:6,cursor:onClick?'pointer':'default',...style}}>
+      {children}
+    </div>
+  );
+}
+
+function Btn({children,color=T.acc,textColor='#fff',outline=false,onClick,style={}}){
+  return(
+    <button onClick={onClick} style={{width:'100%',height:52,borderRadius:100,background:outline?'transparent':color,border:outline?`1px solid ${T.sep}`:'none',color:outline?T.tp:textColor,fontSize:15,fontWeight:600,cursor:'pointer',...style}}>{children}</button>
+  );
+}
+
+// ── HEX MAP VISUALIZATION ─────────────────────────────────────
+function HexMapBg({width=402,height=874,showTrack=false}){
+  const cols=20,hw=22,hh=20;
+  // Explored cluster centered around col 10, row 9
+  const expl=new Set();
+  [[10,9],[9,9],[11,9],[10,8],[9,8],[11,8],[10,10],[9,10],[8,9],[12,9],[10,7],[9,7],[8,8],[11,7],[12,8],[8,10],[12,10],[7,9],[13,9],[10,11],[9,11],[8,11],[11,10],[7,10],[11,11],[6,9],[13,10],[10,6],[8,6],[12,6]].forEach(([c,r])=>expl.add(r*cols+c));
+  const newH=new Set([[13,11],[14,10]].map(([c,r])=>r*cols+c));
+  const rows=Math.ceil(height/(hh*0.78))+1;
+  const cells=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const idx=r*cols+c;
+    if(expl.has(idx)||newH.has(idx))cells.push({idx,r,c,state:newH.has(idx)?'new':'ex'});
+  }
+  return(
+    <svg width={width} height={height} style={{position:'absolute',inset:0,display:'block'}}>
+      <rect width={width} height={height} fill="#0B1118"/>
+      <ellipse cx={width*0.2} cy={height*0.55} rx="90" ry="60" fill="#101A12" opacity="0.9"/>
+      <ellipse cx={width*0.78} cy={height*0.3} rx="70" ry="50" fill="#101A12" opacity="0.7"/>
+      <path d={`M0,${height*0.44} C${width*0.3},${height*0.41} ${width*0.6},${height*0.46} ${width},${height*0.43}`} stroke="#1E2530" strokeWidth="3" fill="none"/>
+      <path d={`M${width*0.42},0 C${width*0.44},${height*0.4} ${width*0.38},${height*0.7} ${width*0.4},${height}`} stroke="#1E2530" strokeWidth="2" fill="none"/>
+      <path d={`M0,${height*0.72} C${width*0.4},${height*0.70} ${width*0.7},${height*0.74} ${width},${height*0.71}`} stroke="#111A24" strokeWidth="10" fill="none" opacity="0.8"/>
+      <rect width={width} height={height} fill="rgba(0,0,0,0.76)"/>
+      {cells.map(({idx,r,c,state})=>{
+        const x=c*hw+(r%2===1?hw/2:0)+2,y=r*(hh*0.78)+2;
+        const pts=hexPts(x+hw/2,y+hh/2,9);
+        return(
+          <g key={idx}>
+            <polygon points={pts} fill={state==='new'?`${T.acc}88`:`${T.acc}38`} stroke={state==='new'?T.acc:`${T.acc}77`} strokeWidth={state==='new'?1:0.6}/>
+            {state==='new'&&<polygon points={pts} fill="none" stroke={`${T.acc}25`} strokeWidth="6"/>}
+          </g>
+        );
+      })}
+      {showTrack&&<>
+        <polyline points={`${width*0.15},${height*0.72} ${width*0.25},${height*0.60} ${width*0.36},${height*0.55} ${width*0.48},${height*0.49} ${width*0.55},${height*0.47}`} fill="none" stroke={`${T.acc}44`} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
+        <polyline points={`${width*0.15},${height*0.72} ${width*0.25},${height*0.60} ${width*0.36},${height*0.55} ${width*0.48},${height*0.49} ${width*0.55},${height*0.47}`} fill="none" stroke={T.acc} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx={width*0.15} cy={height*0.72} r="5" fill={T.green} stroke="white" strokeWidth="1.5"/>
+      </>}
+      <circle cx={width*0.55} cy={height*0.47} r="20" fill={`${T.acc}15`}/>
+      <circle cx={width*0.55} cy={height*0.47} r="8" fill={T.acc} stroke="white" strokeWidth="2.5"/>
+    </svg>
+  );
+}
+
+function Sparkline({pts}){
+  return(
+    <svg viewBox="0 0 56 42" style={{position:'absolute',inset:'4px',overflow:'visible'}}>
+      <polyline points={pts} fill="none" stroke={T.acc} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// ── iOS 26 FLOATING GLASS TAB BAR ─────────────────────────────
+const TAB_ICONS={
+  map:(c)=><svg width="22" height="22" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  rides:(c)=><svg width="22" height="22" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  stats:(c)=><svg width="22" height="22" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M16.24 7.76a6 6 0 010 8.49M7.76 16.24a6 6 0 010-8.49"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/></svg>,
+  profile:(c)=><svg width="22" height="22" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+};
+function TabBar({active,onTab}){
+  const tabs=[{id:'map',label:'Map'},{id:'rides',label:'Rides'},{id:'stats',label:'Stats'},{id:'profile',label:'Profile'}];
+  return(
+    <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:80,display:'flex',justifyContent:'center',padding:'0 16px 26px',pointerEvents:'none'}}>
+      <div style={{
+        display:'flex',gap:2,padding:'5px',
+        background:'rgba(20,20,22,0.90)',
+        backdropFilter:'blur(32px) saturate(180%)',
+        WebkitBackdropFilter:'blur(32px) saturate(180%)',
+        border:'0.5px solid rgba(255,255,255,0.13)',
+        borderRadius:100,
+        boxShadow:'0 12px 48px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.07)',
+        pointerEvents:'all',
+      }}>
+        {tabs.map(({id,label})=>{
+          const a=active===id;
+          return(
+            <button key={id} onClick={()=>onTab(id)} style={{
+              display:'flex',flexDirection:'column',alignItems:'center',gap:2.5,
+              padding:'7px 15px',borderRadius:100,
+              background:a?T.accS:'transparent',
+              border:'none',cursor:'pointer',minWidth:60,
+              transition:'background 0.18s',
+            }}>
+              {TAB_ICONS[id](a?T.acc:'rgba(235,235,245,0.4)')}
+              <span style={{fontFamily:T.sans,fontSize:10,fontWeight:a?600:400,color:a?T.acc:'rgba(235,235,245,0.4)',letterSpacing:0.2}}>{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── ONBOARDING ────────────────────────────────────────────────
+const OB=[
+  {type:'hex',title:"Discover where\nyou've ridden",sub:"FogRide turns every ride into exploration. Cover the map, hex by hex.",cta:"Get started",link:"I have an account"},
+  {type:'location',title:"Show your rides\non the map",sub:"We need your location to record GPS tracks during rides. Your data stays on your device.",cta:"Allow location access",link:"Not now"},
+  {type:'motion',title:"Auto-pause when\nyou stop",sub:"Detect when you stop or resume riding. Never miss a moment of your journey.",cta:"Allow motion access",link:"Not now"},
+  {type:'health',title:"Sync with\nApple Health",sub:"Save your workouts automatically and monitor your heart rate during rides.",cta:"Allow Health access",link:"Not now"},
+];
+
+function HexIllo(){
+  // Pointy-top hex tessellation: dx = r*sqrt(3), dy = r*1.5, odd rows offset by dx/2
+  const r=19;
+  const dx=r*Math.sqrt(3);
+  const dy=r*1.5;
+  const cx0=95, cy0=92;
+  // axial-ish offsets (col, row) forming a filled hex flower (radius 2)
+  const grid=[
+    [0,-2],
+    [-1,-1],[0,-1],[1,-1],
+    [-2,0],[-1,0],[0,0],[1,0],[2,0],
+    [-1,1],[0,1],[1,1],
+    [0,2],
+  ];
+  const layout=grid.map(([c,r2])=>{
+    const xOff=(r2%2!==0)?dx/2:0;
+    // To keep a symmetric pattern, offset alternating rows; here rows -1 and 1 get shifted
+    const x=cx0+c*dx+(r2%2===0?0:dx/2*(r2>0?-1:-1));
+    const y=cy0+r2*dy;
+    return [x,y];
+  });
+  // Rebuild cleanly: symmetric honeycomb, 3 rows of 3, with extras top/bottom
+  const hexes=[];
+  // row -2: 1 hex
+  hexes.push([cx0, cy0-2*dy]);
+  // row -1: 2 hexes (offset)
+  hexes.push([cx0-dx/2, cy0-dy]);
+  hexes.push([cx0+dx/2, cy0-dy]);
+  // row -1 extras on sides? keep 3 rows in middle
+  hexes.push([cx0-3*dx/2, cy0-dy]);
+  hexes.push([cx0+3*dx/2, cy0-dy]);
+  // row 0: 3 hexes (center row)
+  hexes.push([cx0-dx, cy0]);
+  hexes.push([cx0, cy0]);
+  hexes.push([cx0+dx, cy0]);
+  // row 1: 4 hexes
+  hexes.push([cx0-3*dx/2, cy0+dy]);
+  hexes.push([cx0-dx/2, cy0+dy]);
+  hexes.push([cx0+dx/2, cy0+dy]);
+  hexes.push([cx0+3*dx/2, cy0+dy]);
+  // row 2: 1 hex
+  hexes.push([cx0, cy0+2*dy]);
+
+  // "lit" hexes — the discovered/explored cluster (center + some neighbors)
+  const lit=[0,1,2,5,6,7,9,10,11,12];
+  return(
+    <svg width="190" height="190" viewBox="0 0 190 190" style={{filter:'drop-shadow(0 0 30px rgba(10,132,255,0.25))'}}>
+      <radialGradient id="hg" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stopColor={T.acc} stopOpacity="0.22"/>
+        <stop offset="100%" stopColor={T.acc} stopOpacity="0"/>
+      </radialGradient>
+      <ellipse cx="95" cy="95" rx="82" ry="72" fill="url(#hg)"/>
+      {hexes.map(([x,y],i)=>{
+        const l=lit.includes(i);
+        const pts=hexPts(x,y,r-0.6);
+        return(
+          <g key={i} style={{animation:`hexGlow ${1.8+i*0.22}s ease-in-out infinite`,animationDelay:`${i*0.16}s`}}>
+            <polygon points={pts} fill={l?`${T.acc}30`:'rgba(44,44,46,0.8)'} stroke={l?`${T.acc}cc`:'rgba(80,80,84,0.5)'} strokeWidth="1"/>
+            {l&&<polygon points={pts} fill="none" stroke={`${T.acc}18`} strokeWidth="6"/>}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function OBIcon({type}){
+  const map={
+    location:{bg:T.accS,border:T.accB,stroke:T.acc,path:<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></>},
+    motion:{bg:T.accS,border:T.accB,stroke:T.acc,path:<><circle cx="12" cy="5" r="2.5"/><path d="M12 7.5v5.5l3 3M9.5 13L7 17M14.5 13L17 17"/><path d="M9 8C7 9 6 12 7 14"/></>},
+    health:{bg:'rgba(255,69,58,0.12)',border:'rgba(255,69,58,0.35)',stroke:T.red,path:<><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></>},
+  };
+  const m=map[type];
+  return(
+    <div style={{width:88,height:88,borderRadius:24,background:m.bg,border:`1px solid ${m.border}`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <svg width="44" height="44" fill="none" stroke={m.stroke} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">{m.path}</svg>
+    </div>
+  );
+}
+
+function OnboardingScreen({onDone}){
+  const [page,setPage]=useState(()=>parseInt(localStorage.getItem('fr_ob_page')||'0'));
+  useEffect(()=>{localStorage.setItem('fr_ob_page',page);},[page]);
+  const ob=OB[page];
+  const next=()=>{if(page<OB.length-1)setPage(p=>p+1);else onDone();};
+  return(
+    <div style={{width:'100%',height:'100%',background:T.bg,display:'flex',flexDirection:'column',alignItems:'center',overflow:'hidden'}}>
+      {/* illustration */}
+      <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',minHeight:0}}>
+        {ob.type==='hex'?<HexIllo/>:<OBIcon type={ob.type}/>}
+      </div>
+      {/* bottom */}
+      <div style={{padding:'0 28px 44px',width:'100%',display:'flex',flexDirection:'column',alignItems:'center'}}>
+        {/* dots */}
+        <div style={{display:'flex',gap:6,marginBottom:28,alignItems:'center'}}>
+          {OB.map((_,i)=>(
+            <div key={i} style={{width:i===page?18:6,height:6,borderRadius:100,background:i===page?T.acc:T.tq,transition:'all 0.25s'}}/>
+          ))}
+        </div>
+        <h1 style={{fontFamily:T.sans,fontSize:26,fontWeight:700,color:T.tp,textAlign:'center',lineHeight:1.18,marginBottom:12,whiteSpace:'pre-line'}}>{ob.title}</h1>
+        <p style={{fontFamily:T.sans,fontSize:14,color:T.ts,textAlign:'center',lineHeight:1.6,marginBottom:28,maxWidth:290}}>{ob.sub}</p>
+        <Btn onClick={next} style={{boxShadow:`0 4px 28px ${T.acc}44`,marginBottom:12}}>{ob.cta}</Btn>
+        <button onClick={next} style={{background:'none',border:'none',fontFamily:T.sans,fontSize:13,color:T.tt,cursor:'pointer',padding:8}}>{ob.link}</button>
+      </div>
+    </div>
+  );
+}
+
+// ── MAP SCREEN ────────────────────────────────────────────────
+function MapScreen({onStartRide}){
+  return(
+    <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden'}}>
+      <HexMapBg width={402} height={874}/>
+      {/* subtle dot grid */}
+      <div style={{position:'absolute',inset:0,backgroundImage:`linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px)`,backgroundSize:'8px 8px',pointerEvents:'none'}}/>
+      {/* top floating controls */}
+      <div style={{position:'absolute',top:68,left:16,right:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <GlassPill>
+          <svg width="14" height="12" fill="none" stroke={T.tp} strokeWidth="1.6" strokeLinecap="round" viewBox="0 0 14 12"><line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="6" x2="14" y2="6"/><line x1="0" y1="11" x2="14" y2="11"/></svg>
+          <span style={{fontFamily:T.sans,fontSize:12,fontWeight:500,color:T.tp}}>Berlin · 23%</span>
+        </GlassPill>
+        <GlassCircle>
+          <svg width="18" height="18" fill="none" stroke={T.ts} strokeWidth="1.6" strokeLinecap="round" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </GlassCircle>
+      </div>
+      {/* recenter */}
+      <div style={{position:'absolute',right:16,top:'44%'}}>
+        <GlassCircle>
+          <svg width="18" height="18" fill="none" stroke={T.ts} strokeWidth="1.6" strokeLinecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+        </GlassCircle>
+      </div>
+      {/* bottom stack */}
+      <div style={{position:'absolute',bottom:94,left:16,right:16,display:'flex',flexDirection:'column',gap:10}}>
+        <GlassPill style={{borderRadius:12,padding:'10px 16px',justifyContent:'space-around'}}>
+          <div style={{display:'flex',alignItems:'baseline',gap:3}}>
+            <span style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:T.acc}}>1,284</span>
+            <span style={{fontFamily:T.mono,fontSize:10,color:T.tt}}>hex</span>
+          </div>
+          <span style={{color:T.sepS,fontFamily:T.mono,fontSize:13}}>·</span>
+          <span style={{fontFamily:T.mono,fontSize:11,color:T.ts}}>18.3 km today</span>
+          <span style={{color:T.sepS,fontFamily:T.mono,fontSize:13}}>·</span>
+          <div style={{display:'flex',alignItems:'baseline',gap:2}}>
+            <span style={{fontFamily:T.mono,fontSize:10,color:T.tt}}>E</span>
+            <span style={{fontFamily:T.mono,fontSize:12,fontWeight:500,color:T.ts}}>42</span>
+          </div>
+        </GlassPill>
+        <button onClick={onStartRide} style={{
+          width:'100%',height:56,borderRadius:100,background:T.acc,border:'none',
+          color:'#fff',fontFamily:T.sans,fontSize:16,fontWeight:600,cursor:'pointer',
+          display:'flex',alignItems:'center',justifyContent:'center',gap:9,
+          boxShadow:`0 4px 32px ${T.acc}55,0 2px 10px ${T.acc}33`,
+        }}>
+          <svg width="13" height="15" viewBox="0 0 13 15" fill="white"><path d="M0 0l13 7.5L0 15V0z"/></svg>
+          Start Ride
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── RECORDING SCREEN ──────────────────────────────────────────
+function RecordingScreen({onStop}){
+  const [sec,setSec]=useState(0);
+  const [spd,setSpd]=useState(24.7);
+  const [hex,setHex]=useState(47);
+  const [km,setKm]=useState(18.3);
+  useEffect(()=>{
+    const t=setInterval(()=>{
+      setSec(s=>s+1);
+      setSpd(s=>Math.max(8,Math.min(42,+(s+(Math.random()-0.44)*1.1).toFixed(1))));
+      setKm(d=>+(d+0.004).toFixed(3));
+      if(Math.random()<0.025)setHex(h=>h+1);
+    },1000);
+    return()=>clearInterval(t);
+  },[]);
+  const fmt=s=>`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  return(
+    <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden'}}>
+      <HexMapBg width={402} height={874} showTrack/>
+      {/* top */}
+      <div style={{position:'absolute',top:68,left:16,right:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <GlassCircle>
+          <svg width="16" height="16" fill="none" stroke={T.tp} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </GlassCircle>
+        <GlassPill>
+          <div style={{width:7,height:7,borderRadius:'50%',background:T.red,animation:'rPulse 1.5s ease-in-out infinite'}}/>
+          <span style={{fontFamily:T.mono,fontSize:11,fontWeight:500,color:T.tp}}>REC · {fmt(sec)}</span>
+        </GlassPill>
+      </div>
+      {/* compass */}
+      <div style={{position:'absolute',right:16,top:'36%',background:T.glass,backdropFilter:'blur(20px)',border:`1px solid ${T.glassB}`,borderRadius:12,padding:'10px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" style={{transform:'rotate(35deg)'}}>
+          <path d="M13 3l4 20-4-5-4 5z" fill={T.acc}/>
+        </svg>
+        <span style={{fontFamily:T.mono,fontSize:10,color:T.tt}}>240m</span>
+      </div>
+      {/* hud + controls */}
+      <div style={{position:'absolute',bottom:0,left:0,right:0}}>
+        <div style={{margin:'0 16px 10px',background:T.glass,backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',border:`1px solid ${T.glassB}`,borderRadius:20,padding:'14px 6px',display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
+          {[[spd.toFixed(1),'KM/H',T.tp],[hex,'HEX',T.acc],[km.toFixed(1),'KM',T.tp],['1:23','TIME',T.tp]].map(([v,l,c],i,a)=>(
+            <div key={l} style={{textAlign:'center',borderRight:i<a.length-1?`1px solid ${T.sep}`:'none',padding:'0 6px'}}>
+              <div style={{fontFamily:T.mono,fontSize:20,fontWeight:600,lineHeight:1,color:c}}>{v}</div>
+              <div style={{fontFamily:T.mono,fontSize:8,letterSpacing:'0.12em',color:T.tq,marginTop:4}}>{l}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'flex',justifyContent:'center',gap:5,marginBottom:10}}>
+          {[0,1,2,3].map(i=><div key={i} style={{width:5,height:5,borderRadius:'50%',background:i===0?T.acc:T.tq}}/>)}
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:12,padding:'0 16px 92px'}}>
+          <GlassPill style={{flex:1,borderRadius:100,padding:'14px 20px',justifyContent:'center',gap:8}}>
+            <svg width="14" height="16" viewBox="0 0 14 16" fill={T.tp}><rect x="0" y="0" width="4.5" height="16" rx="1.5"/><rect x="9.5" y="0" width="4.5" height="16" rx="1.5"/></svg>
+            <span style={{fontFamily:T.sans,fontSize:14,fontWeight:500,color:T.tp}}>Pause</span>
+          </GlassPill>
+          <button onClick={onStop} style={{width:60,height:60,borderRadius:'50%',background:T.red,border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 4px 28px ${T.red}55`,flexShrink:0}}>
+            <div style={{width:20,height:20,background:'#fff',borderRadius:4}}/>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TRIP SUMMARY ──────────────────────────────────────────────
+function TripSummaryScreen({onDetails,onDiscard}){
+  return(
+    <div style={{width:'100%',height:'100%',background:T.bg,overflowY:'auto',padding:'64px 20px 36px',display:'flex',flexDirection:'column',alignItems:'center',animation:'slideUp 0.35s ease-out'}}>
+      <div style={{width:64,height:64,borderRadius:'50%',background:T.green,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 0 40px ${T.green}44`,marginBottom:16}}>
+        <svg width="28" height="22" viewBox="0 0 28 22" fill="none"><path d="M2 11l8 8 16-17" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </div>
+      <h1 style={{fontFamily:T.sans,fontSize:26,fontWeight:700,color:T.tp,marginBottom:5}}>Ride complete</h1>
+      <p style={{fontFamily:T.sans,fontSize:14,color:T.ts,marginBottom:24}}>Morning ride <span style={{color:T.acc,cursor:'pointer'}}>✎</span></p>
+      <div style={{width:'100%',display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:T.sep,borderRadius:16,overflow:'hidden',border:`1px solid ${T.sep}`,marginBottom:12}}>
+        {[['DISTANCE','18.3',T.tp,'km'],['NEW HEX','+47',T.acc,'total: 1,284'],['MOVING','1:23',T.tp,'avg 13.2 km/h'],['ELEV','342',T.green,'↑m · ↓318m']].map(([l,v,c,s])=>(
+          <div key={l} style={{background:T.bg1,padding:'13px 15px'}}>
+            <MonoLabel style={{display:'block',marginBottom:5}}>{l}</MonoLabel>
+            <MonoVal color={c} size={24}>{v}</MonoVal>
+            <div style={{fontFamily:T.mono,fontSize:10,color:T.tt,marginTop:3}}>{s}</div>
+          </div>
+        ))}
+      </div>
+      {/* mini map */}
+      <div style={{width:'100%',height:110,background:'#0B1118',borderRadius:12,border:`1px solid ${T.sep}`,marginBottom:12,overflow:'hidden',position:'relative'}}>
+        <svg width="100%" height="110" viewBox="0 0 360 110" preserveAspectRatio="xMidYMid slice">
+          <rect width="360" height="110" fill="#0B1118"/>
+          <polyline points="20,92 70,68 120,72 180,42 240,56 310,22" fill="none" stroke={T.acc} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="20" cy="92" r="5" fill={T.green} stroke="white" strokeWidth="1.5"/>
+          <circle cx="310" cy="22" r="5" fill={T.red} stroke="white" strokeWidth="1.5"/>
+        </svg>
+      </div>
+      {/* highlight */}
+      <div style={{width:'100%',background:`linear-gradient(135deg,rgba(255,214,10,0.08),rgba(255,159,10,0.05))`,border:`1px solid rgba(255,214,10,0.22)`,borderRadius:12,padding:'12px 14px',display:'flex',alignItems:'center',gap:10,marginBottom:24}}>
+        <span style={{fontSize:18}}>🏆</span>
+        <div>
+          <div style={{fontFamily:T.sans,fontSize:13,fontWeight:600,color:T.tp}}>Best 1km: 2:14 (26.8 km/h)</div>
+          <div style={{fontFamily:T.sans,fontSize:11,color:T.tt}}>Personal best for this distance</div>
+        </div>
+      </div>
+      <div style={{width:'100%',display:'flex',flexDirection:'column',gap:10}}>
+        <Btn onClick={onDetails}>View ride details</Btn>
+        <Btn color={T.bg2} outline style={{border:`1px solid ${T.sep}`}}>Share</Btn>
+        <button onClick={onDiscard} style={{background:'none',border:'none',fontFamily:T.sans,fontSize:13,color:T.red,cursor:'pointer',padding:8}}>Discard</button>
+      </div>
+    </div>
+  );
+}
+
+// ── TRIP DETAIL ───────────────────────────────────────────────
+function TripDetailScreen({onBack}){
+  const splits=[{km:1,t:'2:34',s:'23.4',e:'+12'},{km:2,t:'2:14',s:'26.8',e:'-4',best:true},{km:3,t:'2:42',s:'22.2',e:'+38'},{km:4,t:'2:51',s:'21.0',e:'+28'}];
+  return(
+    <div style={{width:'100%',height:'100%',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden',animation:'slideUp 0.3s ease-out'}}>
+      <div style={{padding:'58px 16px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+        <button onClick={onBack} style={{width:36,height:36,borderRadius:'50%',background:T.accS,border:`1px solid ${T.accB}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+          <svg width="11" height="19" viewBox="0 0 11 19" fill="none"><path d="M9.5 1L1.5 9.5 9.5 18" stroke={T.acc} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        <span style={{fontFamily:T.sans,fontSize:15,fontWeight:500,color:T.tp}}>Trip details</span>
+        <GlassCircle size={36}>
+          <svg width="18" height="5" viewBox="0 0 18 5"><circle cx="2.5" cy="2.5" r="2.5" fill={T.ts}/><circle cx="9" cy="2.5" r="2.5" fill={T.ts}/><circle cx="15.5" cy="2.5" r="2.5" fill={T.ts}/></svg>
+        </GlassCircle>
+      </div>
+      <div style={{flex:1,overflowY:'auto',paddingBottom:20}}>
+        {/* hero map */}
+        <div style={{height:200,position:'relative',overflow:'hidden',flexShrink:0}}>
+          <HexMapBg width={402} height={240} showTrack/>
+          <svg style={{position:'absolute',inset:0,pointerEvents:'none'}} width="402" height="240">
+            <circle cx="62" cy="190" r="5" fill={T.green} stroke="white" strokeWidth="1.5"/>
+            <circle cx="224" cy="118" r="5" fill={T.red} stroke="white" strokeWidth="1.5"/>
+          </svg>
+        </div>
+        <div style={{padding:'16px 20px 10px'}}>
+          <h2 style={{fontFamily:T.sans,fontSize:22,fontWeight:700,color:T.tp,marginBottom:3}}>Morning ride</h2>
+          <span style={{fontFamily:T.mono,fontSize:12,color:T.tt}}>Today · 06:42 — 08:05</span>
+        </div>
+        <div style={{height:1,background:T.sep,margin:'0 20px 12px'}}/>
+        <div style={{margin:'0 16px 14px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:T.sep,borderRadius:14,overflow:'hidden',border:`1px solid ${T.sep}`}}>
+          {[['DISTANCE','18.3',T.tp,'km'],['HEX','+47',T.acc,'total 1,284'],['MOVING','1:23',T.tp,'total 1:28'],['ELEV','342',T.green,'↑m']].map(([l,v,c,s])=>(
+            <div key={l} style={{background:T.bg1,padding:'12px 14px'}}>
+              <MonoLabel style={{display:'block',marginBottom:5}}>{l}</MonoLabel>
+              <MonoVal color={c} size={22}>{v}</MonoVal>
+              <div style={{fontFamily:T.mono,fontSize:10,color:T.tt,marginTop:3}}>{s}</div>
+            </div>
+          ))}
+        </div>
+        {/* speed chart */}
+        <SectionLabel>SPEED</SectionLabel>
+        <div style={{margin:'0 16px 10px',background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:12,height:100,padding:'14px',overflow:'hidden'}}>
+          <svg viewBox="0 0 320 72" style={{width:'100%',height:'100%'}}>
+            <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={T.acc} stopOpacity="0.3"/><stop offset="100%" stopColor={T.acc} stopOpacity="0"/></linearGradient></defs>
+            <path d="M0,50 C30,42 50,30 80,26 C110,22 130,36 160,20 C190,6 210,38 240,28 C270,16 295,44 320,34 L320,72 L0,72z" fill="url(#sg)"/>
+            <path d="M0,50 C30,42 50,30 80,26 C110,22 130,36 160,20 C190,6 210,38 240,28 C270,16 295,44 320,34" fill="none" stroke={T.acc} strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        </div>
+        {/* elevation chart */}
+        <SectionLabel>ELEVATION</SectionLabel>
+        <div style={{margin:'0 16px 10px',background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:12,height:100,padding:'14px',overflow:'hidden'}}>
+          <svg viewBox="0 0 320 72" style={{width:'100%',height:'100%'}}>
+            <defs><linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={T.green} stopOpacity="0.3"/><stop offset="100%" stopColor={T.green} stopOpacity="0"/></linearGradient></defs>
+            <path d="M0,60 C40,58 60,44 90,28 C110,18 122,38 152,32 C182,26 202,8 222,18 C242,28 268,50 320,54 L320,72 L0,72z" fill="url(#eg)"/>
+            <path d="M0,60 C40,58 60,44 90,28 C110,18 122,38 152,32 C182,26 202,8 222,18 C242,28 268,50 320,54" fill="none" stroke={T.green} strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        </div>
+        {/* splits */}
+        <SectionLabel>SPLITS</SectionLabel>
+        <div style={{margin:'0 16px 10px',background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:12,overflow:'hidden'}}>
+          <div style={{background:T.bg2,display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',padding:'8px 14px'}}>
+            {['KM','TIME','SPEED','↑M'].map(h=><MonoLabel key={h}>{h}</MonoLabel>)}
+          </div>
+          {splits.map(({km,t,s,e,best})=>(
+            <div key={km} style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',padding:'10px 14px',borderTop:`1px solid ${T.sep}`,background:best?T.accS:'transparent'}}>
+              {[km,t,s,e].map((v,i)=><span key={i} style={{fontFamily:T.mono,fontSize:11,fontWeight:best?600:400,color:best?T.acc:T.tp}}>{v}</span>)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── RIDES SCREEN ──────────────────────────────────────────────
+const RIDES=[
+  {id:1,title:'Morning ride',time:'06:42',hex:47,dist:'18.3',dur:'1h 23m',pts:'4,28 10,20 16,22 22,14 28,16 34,8 44,12',group:'TODAY'},
+  {id:2,title:'Evening loop',time:'18:10',hex:12,dist:'24.1',dur:'1h 02m',pts:'4,20 12,26 18,18 26,22 32,12 40,16 44,10',group:'YESTERDAY'},
+  {id:3,title:'Weekend explore',time:'09:15',hex:103,dist:'47.8',dur:'2h 41m',pts:'4,30 8,24 14,26 22,10 30,18 38,14 44,20',group:'LAST WEEK'},
+  {id:4,title:'Commute home',time:'17:42',hex:8,dist:'11.2',dur:'28m',pts:'4,22 10,18 18,20 24,14 32,18 40,12 44,16',group:'LAST WEEK'},
+];
+function RidesScreen({onDetail}){
+  const groups=[...new Set(RIDES.map(r=>r.group))];
+  return(
+    <div style={{width:'100%',height:'100%',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'14px 20px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:62,flexShrink:0}}>
+        <h1 style={{fontFamily:T.sans,fontSize:28,fontWeight:700,color:T.tp}}>Rides</h1>
+        <div style={{display:'flex',gap:8}}>
+          {[
+            <svg width="16" height="16" fill="none" stroke={T.ts} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+            <svg width="16" height="16" fill="none" stroke={T.ts} strokeWidth="1.8" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
+          ].map((ic,i)=>(
+            <button key={i} style={{width:34,height:34,borderRadius:8,background:T.bg2,border:`1px solid ${T.sep}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>{ic}</button>
+          ))}
+        </div>
+      </div>
+      {/* week card */}
+      <div style={{margin:'0 16px 6px',background:`linear-gradient(135deg,${T.accS},rgba(48,209,88,0.07))`,border:`1px solid ${T.accB}`,borderRadius:12,padding:'11px 16px',flexShrink:0}}>
+        <MonoLabel style={{display:'block',marginBottom:4}}>THIS WEEK</MonoLabel>
+        <span style={{fontFamily:T.mono,fontSize:13,fontWeight:500,color:T.ts}}>3 rides · 47.8 km · <span style={{color:T.acc,fontWeight:600}}>+103 hex</span></span>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'0 16px 90px'}}>
+        {groups.map(g=>{
+          const list=RIDES.filter(r=>r.group===g);
+          return(
+            <div key={g}>
+              <SectionLabel>{g}</SectionLabel>
+              {list.map((r,i)=>(
+                <div key={r.id} onClick={()=>onDetail(r)} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<list.length-1?`1px solid ${T.sep}`:'none',cursor:'pointer'}}>
+                  <div style={{width:56,height:42,background:T.bg2,border:`1px solid ${T.sep}`,borderRadius:8,position:'relative',flexShrink:0,overflow:'hidden'}}>
+                    <Sparkline pts={r.pts}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:T.sans,fontSize:14,fontWeight:500,color:T.tp}}>{r.title}</div>
+                    <div style={{fontFamily:T.mono,fontSize:10,color:T.tt,marginTop:2}}>{r.time} · <span style={{color:T.acc}}>+{r.hex} hex</span></div>
+                  </div>
+                  <div style={{textAlign:'right',flexShrink:0}}>
+                    <div style={{fontFamily:T.mono,fontSize:13,fontWeight:500,color:T.tp}}>{r.dist} km</div>
+                    <div style={{fontFamily:T.mono,fontSize:10,color:T.tt,marginTop:1}}>{r.dur}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── STATS SCREEN ──────────────────────────────────────────────
+function StatsScreen(){
+  const [period,setPeriod]=useState('Y');
+  const bars=[40,65,28,80,55,90,47,72,33,60,85,44,70,58,42,75,50,88,62,35,78,52,68,45,83,57,40,72,48,66];
+  return(
+    <div style={{width:'100%',height:'100%',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'14px 20px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:62,flexShrink:0}}>
+        <h1 style={{fontFamily:T.sans,fontSize:28,fontWeight:700,color:T.tp}}>Stats</h1>
+        <div style={{display:'flex',gap:2,background:T.bg2,borderRadius:8,padding:3}}>
+          {['All','Y','M','W'].map(p=>(
+            <button key={p} onClick={()=>setPeriod(p)} style={{padding:'4px 10px',borderRadius:6,border:'none',background:period===p?T.acc:'transparent',color:period===p?'#fff':T.ts,fontFamily:T.mono,fontSize:11,cursor:'pointer'}}>{p}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'0 16px 90px'}}>
+        {/* heatmap */}
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:12,height:156,marginBottom:4,position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',inset:0,background:'#0B1118'}}/>
+          {[[38,55,55],[62,75,42],[58,32,36],[80,60,48],[44,68,40]].map(([x,y,s],i)=>(
+            <div key={i} style={{position:'absolute',left:`${x}%`,top:`${y}%`,width:s,height:s,borderRadius:'50%',background:T.acc,opacity:0.18+i*0.07,filter:`blur(${18+i*4}px)`,transform:'translate(-50%,-50%)'}}/>
+          ))}
+          <svg style={{position:'absolute',inset:0,opacity:0.1}} width="100%" height="156">
+            <line x1="0" y1="60" x2="340" y2="75" stroke="white" strokeWidth="1.2"/>
+            <line x1="0" y1="110" x2="340" y2="100" stroke="white" strokeWidth="0.6"/>
+            <line x1="110" y1="0" x2="125" y2="156" stroke="white" strokeWidth="0.6"/>
+          </svg>
+        </div>
+        <div style={{textAlign:'right',marginBottom:12,paddingRight:2}}>
+          <span style={{fontFamily:T.sans,fontSize:12,color:T.acc,cursor:'pointer'}}>Open in Map →</span>
+        </div>
+        <SectionLabel>HEX METRICS</SectionLabel>
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:12,overflow:'hidden',marginBottom:14}}>
+          {[['Total hex','1,284',T.tp],['Coverage','134.8 km²',T.tp],['Eddington (E)','42',T.acc],['Hex/day E','8',T.acc],['Max Square','7×7',T.tp],['Max Cluster','412 hex',T.tp]].map(([l,v,c],i,a)=>(
+            <div key={l} style={{display:'flex',alignItems:'center',padding:'12px 16px',borderBottom:i<a.length-1?`1px solid ${T.sep}`:'none'}}>
+              <span style={{fontFamily:T.sans,fontSize:13,color:T.ts,flex:1}}>{l}</span>
+              <span style={{fontFamily:T.mono,fontSize:14,fontWeight:600,color:c}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <SectionLabel>LAST 30 DAYS</SectionLabel>
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:12,padding:'14px',marginBottom:14}}>
+          <div style={{display:'flex',alignItems:'flex-end',gap:3,height:60}}>
+            {bars.map((h,i)=>(
+              <div key={i} style={{flex:1,height:`${h}%`,background:i===bars.length-1?T.acc:i%7===0?T.green:T.accS,borderRadius:'2px 2px 0 0'}}/>
+            ))}
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',marginTop:6}}>
+            <MonoLabel>Apr 1</MonoLabel><MonoLabel>Apr 30</MonoLabel>
+          </div>
+        </div>
+        <SectionLabel>ACHIEVEMENTS · 23/40</SectionLabel>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,paddingBottom:4}}>
+          {[true,true,true,true,true,false,false,false].map((lit,i)=>(
+            <div key={i} style={{aspectRatio:'1',borderRadius:10,background:lit?T.accS:T.bg2,border:`1px solid ${lit?T.accB:T.sep}`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              {lit?(
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,8px)',gap:2}}>
+                  {Array.from({length:9},(_,j)=><div key={j} style={{width:8,height:8,clipPath:'polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)',background:j%2===0?T.acc:T.accS}}/>)}
+                </div>
+              ):<span style={{fontSize:15,opacity:0.35}}>🔒</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PROFILE SCREEN ────────────────────────────────────────────
+function ProfileScreen({onUpgrade}){
+  const [togs,setTogs]=useState({ap:true,hap:true,snd:false,dir:true});
+  const tog=k=>setTogs(t=>({...t,[k]:!t[k]}));
+  const Row=({l,v,c=T.tp,onClick,last})=>(
+    <div onClick={onClick} style={{display:'flex',alignItems:'center',padding:'12px 16px',borderBottom:last?'none':`1px solid ${T.sep}`,cursor:onClick?'pointer':'default'}}>
+      <span style={{fontFamily:T.sans,fontSize:14,color:c,flex:1}}>{l}</span>
+      {v&&<span style={{fontFamily:T.sans,fontSize:13,color:T.tt,marginRight:6}}>{v}</span>}
+      {onClick&&<svg width="8" height="13" viewBox="0 0 8 13" fill="none"><path d="M1 1l6 5.5L1 12" stroke={c===T.red?T.red:T.tq} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+    </div>
+  );
+  return(
+    <div style={{width:'100%',height:'100%',background:T.bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'14px 20px 10px',paddingTop:62,flexShrink:0}}>
+        <h1 style={{fontFamily:T.sans,fontSize:28,fontWeight:700,color:T.tp}}>Profile</h1>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'0 16px 90px'}}>
+        {/* profile card */}
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:16,padding:'14px 16px',marginBottom:12,display:'flex',alignItems:'center',gap:12}}>
+          <div style={{width:48,height:48,borderRadius:'50%',background:T.accS,border:`1px solid ${T.accB}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>🚴</div>
+          <div>
+            <div style={{fontFamily:T.sans,fontSize:16,fontWeight:600,color:T.tp}}>Anna Schmidt</div>
+            <div style={{fontFamily:T.mono,fontSize:11,color:T.tt,marginTop:1}}>Member since Apr 2026</div>
+          </div>
+        </div>
+        {/* upsell */}
+        <div style={{background:`linear-gradient(135deg,${T.accS},rgba(48,209,88,0.06))`,border:`1px solid ${T.accB}`,borderRadius:14,padding:'14px 16px',marginBottom:16}}>
+          <div style={{fontFamily:T.sans,fontSize:13,fontWeight:600,color:T.tp,marginBottom:3}}>💎 Free tier · Berlin region only</div>
+          <div style={{fontFamily:T.sans,fontSize:11,color:T.ts,marginBottom:10,lineHeight:1.5}}>Unlock global fog, offline maps, advanced stats and more.</div>
+          <button onClick={onUpgrade} style={{background:T.acc,border:'none',color:'#fff',fontFamily:T.sans,fontSize:12,fontWeight:600,borderRadius:8,padding:'8px 14px',cursor:'pointer'}}>Upgrade to Premium ›</button>
+        </div>
+        <SectionLabel>RECORDING</SectionLabel>
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:14,overflow:'hidden',marginBottom:14}}>
+          {[['Auto-pause','ap'],['Haptic on hex unlock','hap'],['Sound on hex unlock','snd'],['Show direction to fog','dir']].map(([l,k],i,a)=>(
+            <div key={k} style={{display:'flex',alignItems:'center',padding:'12px 16px',borderBottom:i<a.length-1?`1px solid ${T.sep}`:'none'}}>
+              <span style={{fontFamily:T.sans,fontSize:14,color:T.tp,flex:1}}>{l}</span>
+              <Toggle on={togs[k]} onToggle={()=>tog(k)}/>
+            </div>
+          ))}
+        </div>
+        <SectionLabel>DISPLAY</SectionLabel>
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:14,overflow:'hidden',marginBottom:14}}>
+          <Row l="Units" v="Metric" onClick={()=>{}}/>
+          <Row l="Map style" v="Outdoors" onClick={()=>{}} last/>
+        </div>
+        <SectionLabel>PRIVACY</SectionLabel>
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:14,overflow:'hidden',marginBottom:14}}>
+          <Row l="Privacy zones" v="2 zones" onClick={()=>{}}/>
+          <Row l="Free tier region" v="Berlin" onClick={()=>{}}/>
+          <Row l="Export all my data" onClick={()=>{}}/>
+          <Row l="Delete my data" c={T.red} onClick={()=>{}} last/>
+        </div>
+        <SectionLabel>INTEGRATIONS</SectionLabel>
+        <div style={{background:T.bg1,border:`1px solid ${T.sep}`,borderRadius:14,overflow:'hidden'}}>
+          <div style={{display:'flex',alignItems:'center',padding:'12px 16px',borderBottom:`1px solid ${T.sep}`}}>
+            <span style={{fontFamily:T.sans,fontSize:14,color:T.tp,flex:1}}>Apple Health</span>
+            <span style={{fontFamily:T.sans,fontSize:13,color:T.green}}>Connected ✓</span>
+          </div>
+          <Row l="Bluetooth sensors" v="HR strap" onClick={()=>{}} last/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PAYWALL ───────────────────────────────────────────────────
+function PaywallScreen({onClose}){
+  const [plan,setPlan]=useState('yearly');
+  const rows=Math.ceil(874/(20*0.78))+1;
+  return(
+    <div style={{position:'absolute',inset:0,background:T.bg,zIndex:200,display:'flex',flexDirection:'column',overflow:'hidden',animation:'slideUp 0.35s ease-out'}}>
+      {/* hero */}
+      <div style={{height:'40%',position:'relative',overflow:'hidden',flexShrink:0}}>
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,#080F1C 0%,#05090F 100%)'}}>
+          <svg width="402" height="100%" viewBox="0 0 402 200" preserveAspectRatio="xMidYMid slice">
+            {Array.from({length:60},(_,i)=>{
+              const c=i%10,r=Math.floor(i/10);
+              const cx=c*44+(r%2?22:4)+14,cy=r*26+20;
+              const d=Math.sqrt((cx-200)**2+(cy-100)**2)/150;
+              const op=Math.max(0.04,0.55-d);
+              return<polygon key={i} points={hexPts(cx,cy,17)} fill={`${T.acc}${Math.round(op*255).toString(16).padStart(2,'0')}`} stroke={`${T.acc}22`} strokeWidth="0.5"/>;
+            })}
+          </svg>
+          <div style={{position:'absolute',bottom:0,left:0,right:0,height:'65%',background:`linear-gradient(to bottom,transparent,${T.bg})`}}/>
+        </div>
+        <button onClick={onClose} style={{position:'absolute',top:58,right:16,width:30,height:30,borderRadius:'50%',background:'rgba(255,255,255,0.1)',border:'none',color:T.ts,fontSize:16,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'4px 24px 32px'}}>
+        <h2 style={{fontFamily:T.sans,fontSize:26,fontWeight:700,color:T.tp,textAlign:'center',marginBottom:18}}>Explore without limits</h2>
+        <div style={{marginBottom:22,display:'flex',flexDirection:'column',gap:9}}>
+          {['Global fog — no region limits','Offline maps for any area','Advanced stats: Eddington, Max Square, heatmap','Fading fog mode','Live Activity with full metrics'].map(f=>(
+            <div key={f} style={{display:'flex',alignItems:'center',gap:10}}>
+              <span style={{fontFamily:T.mono,fontSize:13,fontWeight:600,color:T.acc,flexShrink:0}}>✓</span>
+              <span style={{fontFamily:T.sans,fontSize:14,color:T.ts}}>{f}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:16}}>
+          {[{id:'monthly',l:'$4.99/month',b:null},{id:'yearly',l:'$39.99/year',b:'Save 33%'},{id:'lifetime',l:'$89 one-time',b:null}].map(({id,l,b})=>(
+            <button key={id} onClick={()=>setPlan(id)} style={{
+              width:'100%',height:52,borderRadius:100,
+              background:plan===id?T.accS:T.bg2,
+              border:plan===id?`2px solid ${T.acc}`:`1px solid ${T.sep}`,
+              display:'flex',alignItems:'center',justifyContent:'center',gap:10,cursor:'pointer',
+            }}>
+              <span style={{fontFamily:T.sans,fontSize:plan===id?15:14,fontWeight:plan===id?600:400,color:plan===id?T.acc:T.tp}}>{l}</span>
+              {b&&<span style={{fontFamily:T.mono,fontSize:10,fontWeight:600,background:T.acc,color:'#fff',borderRadius:100,padding:'2px 8px'}}>{b}</span>}
+            </button>
+          ))}
+        </div>
+        <button style={{width:'100%',height:52,borderRadius:100,background:T.acc,border:'none',color:'#fff',fontFamily:T.sans,fontSize:16,fontWeight:600,cursor:'pointer',marginBottom:14,boxShadow:`0 4px 28px ${T.acc}44`}}>Get Premium</button>
+        <div style={{textAlign:'center'}}>
+          <span style={{fontFamily:T.sans,fontSize:11,color:T.tt}}>Restore purchase · Terms · Privacy</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ROOT ──────────────────────────────────────────────────
+function App(){
+  const [screen,setScreen]=useState(()=>localStorage.getItem('fr_scr')||'onboarding');
+  const [tab,setTab]=useState(()=>localStorage.getItem('fr_tab')||'map');
+  const [modal,setModal]=useState(null);
+  useEffect(()=>{localStorage.setItem('fr_scr',screen);},[screen]);
+  useEffect(()=>{localStorage.setItem('fr_tab',tab);},[tab]);
+
+  const tabContent={
+    map:<MapScreen onStartRide={()=>setModal('rec')}/>,
+    rides:<RidesScreen onDetail={()=>setModal('detail')}/>,
+    stats:<StatsScreen/>,
+    profile:<ProfileScreen onUpgrade={()=>setModal('paywall')}/>,
+  };
+
+  return(
+    <IOSDevice dark width={402} height={874}>
+      <div style={{position:'relative',width:'100%',height:'100%',background:T.bg,overflow:'hidden'}}>
+        {screen==='onboarding'
+          ?<OnboardingScreen onDone={()=>setScreen('main')}/>
+          :<>
+            {modal==='rec' ? <RecordingScreen onStop={()=>setModal('summary')}/> : tabContent[tab]}
+            <TabBar active={tab} onTab={setTab}/>
+            {modal==='summary'&&<div style={{position:'absolute',inset:0,zIndex:150}}><TripSummaryScreen onDetails={()=>setModal('detail')} onDiscard={()=>setModal(null)}/></div>}
+            {modal==='detail'&&<div style={{position:'absolute',inset:0,zIndex:150}}><TripDetailScreen onBack={()=>setModal(null)}/></div>}
+            {modal==='paywall'&&<PaywallScreen onClose={()=>setModal(null)}/>}
+          </>
+        }
+      </div>
+    </IOSDevice>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "enabledPlugins": {
+    "swift-lsp@claude-plugins-official": true,
+    "swiftui-pro@swiftui-agent-skill": true,
+    "swift-api-design-guidelines@swift-api-design-guidelines-skill": true,
+    "swiftdata-pro@swiftdata-pro": true,
+    "swift-concurrency-pro@swift-concurrency-pro": true,
+    "swift-testing-pro@swift-testing-pro": true,
+    "superpowers@claude-plugins-official": true,
+    "claude-mem@thedotmack": true
+  }
+}

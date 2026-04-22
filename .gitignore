@@ -1,0 +1,36 @@
+## macOS
+.DS_Store
+
+## Xcode user data
+**/xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+## Xcode build output
+DerivedData/
+build/
+
+## Swift Package Manager
+.build/
+.swiftpm/
+Packages/*/Packages/
+Packages/*/.build/
+Packages/*/.swiftpm/
+# Package.resolved — keep committed for reproducible builds (uncomment to ignore instead)
+# **/Package.resolved
+
+## Obsidian — keep vault config shared, ignore workspace state
+.obsidian/workspace.json
+.obsidian/workspaces.json
+.obsidian/appearance.json
+.obsidian/core-plugins.json
+
+## Editor temp
+*.swp
+*.swo
+*~
+
+## Secrets
+.env
+.env.local
+*.pem
