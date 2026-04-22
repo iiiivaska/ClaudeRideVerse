@@ -30,6 +30,11 @@ public extension Color {
     static let fogOrange = Color(fogHex: 0xFF9F0A)
     static let fogYellow = Color(fogHex: 0xFFD60A)
 
+    // Hex Grid
+    static let fogHexUnexplored = Color(fogRGB: (10, 14, 22), alpha: 0.62)
+    static let fogHexExplored = Color(fogRGB: (10, 132, 255), alpha: 0.13)
+    static let fogHexGridLine = Color(white: 1.0, alpha: 0.06)
+
     // Glass
     static let fogGlassBg = Color(fogRGB: (22, 22, 24), alpha: 0.86)
     static let fogGlassBgTabBar = Color(fogRGB: (20, 20, 22), alpha: 0.90)
@@ -39,6 +44,16 @@ public extension Color {
     // Tab-bar inactive text
     static let fogTabInactive = Color(fogTextRGB: 235, alpha: 0.40)
 }
+
+#if canImport(UIKit)
+import UIKit
+
+public extension UIColor {
+    static let fogHexUnexplored = UIColor(red: 10 / 255, green: 14 / 255, blue: 22 / 255, alpha: 0.62)
+    static let fogHexExplored = UIColor(red: 10 / 255, green: 132 / 255, blue: 255 / 255, alpha: 0.13)
+    static let fogHexGridLine = UIColor(white: 1.0, alpha: 0.06)
+}
+#endif
 
 // MARK: - Internal initializers
 
