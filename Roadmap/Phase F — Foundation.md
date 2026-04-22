@@ -25,14 +25,20 @@
 - **SCRUM-17** [F.2] CI — build + test (GitHub Actions, 2-3ч) — **DONE** (PR #1, коммит `4a07ee8`)
   - _Scope-change:_ Xcode Cloud недоступен для текущего Apple Developer аккаунта, переключено на GitHub Actions hosted macOS runner. TestFlight-деплой вынесен в отдельный follow-up тикет ([[#Follow-up|см. ниже]]).
   - Детали: [[CI]]
-- **SCRUM-18** [F.3] DesignSystem — Liquid Glass tokens + components (18-20ч) — **самая крупная задача фазы**
+- **SCRUM-18** [F.3] DesignSystem — Liquid Glass tokens + components (18-20ч) — **DONE** (PR #2, merge commit `9e3b480`)
+  - 6 подфаз за одну сессию: F.3.1 tokens → F.3.2 primitives + hex geometry + pulse → F.3.3 buttons → F.3.4 hex cells + cards → F.3.5 navigation + indicators + onboarding → F.3.6 gallery view + README
+  - 20+ публичных компонентов, 49 Swift Testing assertions в 13 suites (`swift test` green)
+  - Дополнительно: DesignSystemGallery app target в Xcode для Simulator-валидации
+  - _Отклонения:_ платформа `.macOS(.v26)` добавлена для `swift build` на CLI; SF Pro/SF Mono вместо DM Sans/IBM Plex Mono (убран custom-font registrar); snapshot-тесты заменены на `ImageRenderer` smoke checks — реальные screenshots отложены до SCRUM-72
+  - Детали: [[../Architecture/Прочие пакеты#DesignSystem|Architecture/Прочие пакеты → DesignSystem]], `Packages/DesignSystem/README.md`
 - **SCRUM-19** [F.4] Info.plist + PrivacyInfo + Capabilities (2-3ч)
 - **SCRUM-20** [F.5] PersistenceCore — GRDB 7 + WAL + migrations (3-4ч)
 
-### Follow-up (созданы во время SCRUM-17)
+### Follow-up
 
 - **SCRUM-70** [F.2+] SwiftLint config + zero warnings baseline (2-3ч) — добавить `.swiftlint.yml` и шаг линтинга в CI
 - **SCRUM-71** [F.2+] TestFlight auto-deploy on tag v\* (3-4ч) — `xcrun altool --upload-app`, секреты ASC API key в GitHub Actions
+- **SCRUM-72** [F.6] Snapshot-тесты DesignSystem — screenshot baselines на iOS 26 Simulator (6-8ч) — swift-snapshot-testing + CI job с `xcodebuild test` на macOS-latest runner; замена `ImageRenderer` smoke-тестам из SCRUM-18
 
 ## Ключевые решения
 

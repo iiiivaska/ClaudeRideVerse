@@ -6,9 +6,10 @@
 
 | Что | Статус |
 |-----|--------|
-| Фаза | [[Roadmap/_index\|Phase F — Foundation]] (начало) |
-| Завершено | SCRUM-13: Xcode workspace + app target |
-| Следующий шаг | SCRUM-14: SPM пакеты Phase 0 |
+| Фаза | [[Roadmap/_index\|Phase F — Foundation]] (3 из 5 задач закрыто) |
+| Завершено | SCRUM-12 (workspace + 5 SPM), SCRUM-17 (CI GitHub Actions), **SCRUM-18 (DesignSystem)** — PR #2 |
+| Следующий шаг | SCRUM-19 (Info.plist + PrivacyInfo, 2-3ч) или SCRUM-20 (PersistenceCore + GRDB, 3-4ч) |
+| Follow-up | SCRUM-70 SwiftLint, SCRUM-71 TestFlight, SCRUM-72 snapshot-тесты DesignSystem |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 
 ## Навигация
