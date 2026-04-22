@@ -1,3 +1,5 @@
+@_exported import GRDB
+
 public enum PersistenceCore {
-    public static let scaffoldVersion = "0.0.1"
+    public static let version = "1.0.0"
 }
