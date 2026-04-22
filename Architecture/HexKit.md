@@ -131,6 +131,38 @@ public enum HexError: Error {
 
 **Назначение:** алгоритмы над наборами ячеек -- compaction по zoom, эффективные multipolygon-операции, итераторы по сетке, адаптеры для [[MapKit|MapFogOfWar]].
 
+### Реализация (SCRUM-25, коммит `4751ad0`)
+
+**Файлы:** `Packages/HexKit/Sources/HexGeometry/`
+- `HexBBox.swift` — struct(south/west/north/east: Double), expanded(by:), contains(_:)
+- `HexCellSet.swift` — struct wrapping Set<HexCell>, init/insert/count/contains/merged
+- `HexCellSet+Compaction.swift` — compacted() через SwiftyH3 `Sequence<H3Cell>.compacted`
+- `HexCellSet+MultiPolygon.swift` — multiPolygon() делегирует в HexCellBatch.boundary(of:), outerBoundaries convenience
+- `HexCellSet+ViewportCulling.swift` — cells(in: HexBBox) с O(n) center check + 50% buffer
+
+**Решения:**
+- `HexCellSet` — struct (value type), не class/actor. Эволюция в actor при hot/cold storage — позже
+- `HexBBox` — локальный тип вместо MapBBox (MapCore ещё не реализован)
+- Compaction: `try?` — при ошибке (mixed resolutions) возвращает self
+- MultiPolygon: делегирует в HexCore `HexCellBatch.boundary(of:)`, не дублирует SwiftyH3 calls
+- Viewport culling: brute-force O(n), R-tree отложен
+- SwiftyH3 добавлен как зависимость HexGeometry target (для compaction API)
+
+**Тесты:** 36 тестов в 5 suites (Swift Testing):
+- **HexBBox** (5): contains inside/outside/edge, expanded math, init from corners
+- **HexCellSet** (11): init/insert/contains/merged/equatable
+- **HexCellSet Compaction** (7): 7 r9→1 r8, partial no-compact, idempotent, pentagon, mixed-resolution
+- **HexCellSet MultiPolygon** (6): single cell, cluster, 100-hex, disjoint 2 polygons, empty, outerBoundaries
+- **HexCellSet Viewport Culling** (6): inside/outside/buffer, empty, whole-world, partial return
+
+**Отложено (future tasks):**
+- HexCompaction enum (lossyCompact, uncompact)
+- HexGridIterator (polygon/line fill)
+- IncrementalMultiPolygonBuilder (actor)
+- HexCellSetFogAdapter (VisitedCells protocol bridge)
+- CompactedHexSnapshot (Codable persistence)
+- Two-layer hot/cold storage, R-tree bbox index
+
 ### Ключевые сценарии
 
 1. **Хранение и загрузка миллионов visited-ячеек.** Нельзя хранить 100k raw ячеек r9 в памяти -- через compaction это ~10k на разных resolutions.

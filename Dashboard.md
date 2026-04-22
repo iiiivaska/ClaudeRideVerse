@@ -6,9 +6,9 @@
 
 | Что | Статус |
 |-----|--------|
-| Фаза | [[Roadmap/Phase 0 — Prototype\|Phase 0 — Prototype]] (1 из 7 задач закрыто) |
-| Завершено | **SCRUM-21** (HexCore — SwiftyH3 wrapper, 35 тестов) |
-| Следующий шаг | SCRUM-25 [[Architecture/HexKit\|HexGeometry]] — compaction, multipolygon, viewport culling |
+| Фаза | [[Roadmap/Phase 0 — Prototype\|Phase 0 — Prototype]] (2 из 7 задач закрыто) |
+| Завершено | **SCRUM-25** (HexGeometry — compaction, multipolygon, viewport culling, 36 тестов) |
+| Следующий шаг | SCRUM-26 [[Architecture/MapVerse\|MapCore]] — MapLibre SwiftUI wrapper + Stadia Outdoors |
 | Phase F | ✅ Полностью завершена: SCRUM-12, 17, 18, 19, 20 |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 

@@ -22,7 +22,13 @@
   - 6 source files, 35 тестов в 6 suites (Swift Testing), pentagon edge cases покрыты
   - Типы: `HexCell` (Hashable, Sendable), `HexResolution` (r0-r15), `HexMultiPolygon`, `HexError`, `HexCellBatch`
   - API: center/boundary/isPentagon, neighbors/parent/children/gridDistance, cellsToMultiPolygon
-- **SCRUM-25** [0.2] [[HexGeometry]] — compaction, multipolygon, viewport culling (3-4ч)
+- **SCRUM-25** [0.2] [[HexGeometry]] — compaction, multipolygon, viewport culling (3-4ч) — **DONE** (PR #4, коммит `4751ad0`)
+  - HexCellSet struct: Set-обёртка с insert/merge/contains/compacted/multiPolygon/viewport culling
+  - HexBBox: локальный bounding box (MapBBox отложен до MapCore)
+  - Compaction через SwiftyH3 `compactCells` — 7 r9 → 1 r8
+  - MultiPolygon делегирует в HexCellBatch.boundary(of:)
+  - Viewport culling: O(n) center check с 50% buffer expansion
+  - 36 тестов в 5 suites (compaction, multipolygon, viewport, bbox, pentagon edge cases)
 - **SCRUM-26** [0.3] [[MapCore]] — MapLibre SwiftUI wrapper + Stadia Outdoors (3-4ч)
 - **SCRUM-27** [0.4] [[MapFogOfWar]] — inverted MultiPolygon (4-5ч)
 - **SCRUM-28** [0.5] [[LocationRecording]] — minimal foreground version (2-3ч)
