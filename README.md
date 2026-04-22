@@ -1,5 +1,7 @@
 # RideVerse
 
+[![CI](https://github.com/iiiivaska/ClaudeRideVerse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/iiiivaska/ClaudeRideVerse/actions/workflows/ci.yml)
+
 iOS 26+ bicycle tracking app with a fog-of-war exploration mechanic over an H3 hexagonal grid. Codename **FogRide**. Solo developer, 18-month roadmap.
 
 ## Tech stack
@@ -20,6 +22,39 @@ open RideVerse.xcworkspace
 ```
 
 Single app target (`RideVerse`, bundle ID `com.iiiivaska.RideVerse`) plus local SPM packages under `Packages/`.
+
+## CI
+
+[`ci.yml`](.github/workflows/ci.yml) runs on every push to `main` and every pull request against `main`. Two jobs on `macos-15`:
+
+- **SPM tests** — matrix over all 5 packages, each runs `swift test` (host macOS, no simulator needed).
+- **App target compiles** — `xcodebuild build` for the `RideVerse` scheme against a generic iOS Simulator.
+
+Running package tests on host macOS is intentional: tests in this project exercise pure Swift logic, not iOS-only APIs. A full `xcodebuild test` through the workspace scheme is not used because Xcode 26's test-plan CLI loading is currently unreliable for workspaces with SPM test targets; `swift test` in each package is both faster and more deterministic.
+
+TestFlight auto-deploy, SwiftLint, and performance benchmarks are tracked as follow-up tickets and are not part of this workflow.
+
+### Local verification
+
+Reproduce the CI pipeline locally before pushing:
+
+```bash
+# SPM tests — matches CI test-packages matrix
+for p in HexKit MapVerse LocationKit DesignSystem PersistenceCore; do
+  (cd "Packages/$p" && swift test) || break
+done
+
+# App target compiles — matches CI build-app job
+xcodebuild build \
+  -workspace RideVerse.xcworkspace \
+  -scheme RideVerse \
+  -destination 'generic/platform=iOS Simulator' \
+  -skipPackagePluginValidation \
+  -skipMacroValidation \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+For day-to-day development, the Xcode UI path works too: open `RideVerse.xcworkspace`, pick scheme `RideVerse`, ⌘U. The scheme has a shared test plan with all 7 test bundles.
 
 ## Architecture
 

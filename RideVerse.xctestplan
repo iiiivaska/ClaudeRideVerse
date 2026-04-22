@@ -1,0 +1,66 @@
+{
+  "configurations" : [
+    {
+      "id" : "ADEBE459-733B-412A-BE7F-93907E187326",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/MapVerse",
+        "identifier" : "MapCoreTests",
+        "name" : "MapCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/PersistenceCore",
+        "identifier" : "PersistenceCoreTests",
+        "name" : "PersistenceCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/HexKit",
+        "identifier" : "HexGeometryTests",
+        "name" : "HexGeometryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/LocationKit",
+        "identifier" : "LocationRecordingTests",
+        "name" : "LocationRecordingTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/HexKit",
+        "identifier" : "HexCoreTests",
+        "name" : "HexCoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/DesignSystem",
+        "identifier" : "DesignSystemTests",
+        "name" : "DesignSystemTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/MapVerse",
+        "identifier" : "MapFogOfWarTests",
+        "name" : "MapFogOfWarTests"
+      }
+    }
+  ],
+  "version" : 1
+}
