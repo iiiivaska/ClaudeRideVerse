@@ -30,7 +30,8 @@ struct PrototypeView: View {
             camera: $viewModel.camera,
             visibleBBox: $viewModel.visibleBBox,
             style: mapStyle,
-            fogFeatures: viewModel.fogFeatures
+            fogFeatures: viewModel.fogFeatures,
+            onUserGesture: { viewModel.userDidPan() }
         )
         .ignoresSafeArea()
     }

@@ -15,6 +15,7 @@ struct PrototypeMapView: UIViewRepresentable {
     @Binding var visibleBBox: MapBBox?
     let style: MapStyle
     let fogFeatures: [MLNPolygonFeature]?
+    let onUserGesture: () -> Void
 
     // MARK: - UIViewRepresentable
 
@@ -26,11 +27,13 @@ struct PrototypeMapView: UIViewRepresentable {
         mapView.showsUserLocation = true
 
         applyCamera(camera, to: mapView, animated: false)
+        context.coordinator.lastSyncedCamera = camera
         return mapView
     }
 
     func updateUIView(_ mapView: MLNMapView, context: Context) {
         let coordinator = context.coordinator
+        coordinator.parent = self
 
         coordinator.isUpdatingFromBinding = true
         defer { coordinator.isUpdatingFromBinding = false }
@@ -77,7 +80,9 @@ struct PrototypeMapView: UIViewRepresentable {
 extension PrototypeMapView {
     @MainActor
     final class Coordinator: NSObject, MLNMapViewDelegate {
-        private let parent: PrototypeMapView
+        /// Refreshed from `updateUIView` so the stored snapshot matches the
+        /// latest SwiftUI-provided struct (and its `onUserGesture` closure).
+        var parent: PrototypeMapView
 
         var isUpdatingFromBinding = false
         var isStyleLoaded = false
@@ -113,6 +118,30 @@ extension PrototypeMapView {
         }
 
         // MARK: Camera Sync
+
+        /// Detect user gestures so the view model can exit auto-follow mode.
+        /// Without this, `PrototypeViewModel.handleLocation` would keep writing
+        /// `camera = GPS location` every GPS tick and fight the user's zoom/pan.
+        nonisolated func mapView(
+            _ mapView: MLNMapView,
+            regionWillChangeWith reason: MLNCameraChangeReason,
+            animated: Bool
+        ) {
+            MainActor.assumeIsolated {
+                let userGestures: MLNCameraChangeReason = [
+                    .gesturePan,
+                    .gesturePinch,
+                    .gestureRotate,
+                    .gestureZoomIn,
+                    .gestureZoomOut,
+                    .gestureOneFingerZoom,
+                    .gestureTilt,
+                ]
+                if !reason.intersection(userGestures).isEmpty {
+                    parent.onUserGesture()
+                }
+            }
+        }
 
         /// Live updates during a pan/pinch gesture — throttled to ~30 Hz so we
         /// don't flood the SwiftUI view-update cycle on every render frame.
