@@ -36,8 +36,6 @@ final class PrototypeViewModel {
     private var timerTask: Task<Void, Never>?
     private var fogRebuildTask: Task<Void, Never>?
     private var startDate: Date?
-    private var lastGeneratedBBox: MapBBox?
-    private var lastGeneratedResolution: HexResolution?
 
     // MARK: - Actions
 
@@ -109,26 +107,19 @@ final class PrototypeViewModel {
         }
     }
 
-    /// Called when visible bounds change — skips rebuild if still well-covered.
+    /// Schedules a fog rebuild for the latest visible bounds.
+    ///
+    /// A short debounce coalesces bursts (e.g. simultaneous location update +
+    /// camera change) without adding perceptible latency. The rebuild itself
+    /// is cheap enough that we don't try to short-circuit it; the new
+    /// `coverViewport` always covers the visible area, so deciding *not* to
+    /// rebuild would only ever leave the user with stale fog.
     func handleVisibleBoundsChange() {
-        guard let visible = visibleBBox else { return }
-
-        // Force rebuild if resolution band changed (zoom crossed a threshold).
-        let currentRes = FogResolutionPolicy.resolution(forZoom: camera.zoom)
-        let resolutionChanged = currentRes != lastGeneratedResolution
-
-        // Skip if resolution is same AND view is still inside inner zone.
-        if !resolutionChanged, let last = lastGeneratedBBox {
-            let shrunk = last.expanded(by: -0.3)
-            if shrunk.contains(visible.northEast),
-               shrunk.contains(visible.southWest) {
-                return
-            }
-        }
+        guard visibleBBox != nil else { return }
 
         fogRebuildTask?.cancel()
         fogRebuildTask = Task {
-            try? await Task.sleep(for: .milliseconds(300))
+            try? await Task.sleep(for: .milliseconds(50))
             guard !Task.isCancelled else { return }
             await regenerateFog()
         }
@@ -145,7 +136,6 @@ final class PrototypeViewModel {
         if isNew {
             hexCount = visitedCells.count
             // Force rebuild — new cell needs to be shown as explored.
-            lastGeneratedBBox = nil
             handleVisibleBoundsChange()
         }
 
@@ -165,8 +155,9 @@ final class PrototypeViewModel {
         let zoom = camera.zoom
         let cells = visitedCells
 
-        // Generate with 100% buffer in all directions.
-        let buffered = bbox.expanded(by: 1.0)
+        // Small buffer (~15% on each side) keeps a thin pre-cache around the
+        // viewport for short pans without inflating the workload at low zoom.
+        let buffered = bbox.expanded(by: 0.15)
 
         // Heavy computation off MainActor.
         let features = await Task.detached(priority: .userInitiated) {
@@ -180,8 +171,6 @@ final class PrototypeViewModel {
 
         guard !Task.isCancelled else { return }
         fogFeatures = features
-        lastGeneratedBBox = buffered
-        lastGeneratedResolution = FogResolutionPolicy.resolution(forZoom: zoom)
     }
 }
 #endif

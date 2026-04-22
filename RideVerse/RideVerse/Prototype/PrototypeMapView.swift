@@ -31,7 +31,6 @@ struct PrototypeMapView: UIViewRepresentable {
 
     func updateUIView(_ mapView: MLNMapView, context: Context) {
         let coordinator = context.coordinator
-        guard !coordinator.isUpdatingFromDelegate else { return }
 
         coordinator.isUpdatingFromBinding = true
         defer { coordinator.isUpdatingFromBinding = false }
@@ -40,7 +39,14 @@ struct PrototypeMapView: UIViewRepresentable {
             mapView.styleURL = style.url
         }
 
-        applyCamera(camera, to: mapView, animated: true)
+        // Apply camera only when SwiftUI's camera value differs from the last
+        // value we synchronised with the map. If they match, this update was
+        // triggered by our own delegate-driven binding push and re-applying
+        // would snap the user's in-progress gesture back to a stale value.
+        if camera != coordinator.lastSyncedCamera {
+            applyCamera(camera, to: mapView, animated: true)
+            coordinator.lastSyncedCamera = camera
+        }
 
         // Update fog source when GeoJSON changes
         if coordinator.isStyleLoaded {
@@ -74,11 +80,23 @@ extension PrototypeMapView {
         private let parent: PrototypeMapView
 
         var isUpdatingFromBinding = false
-        var isUpdatingFromDelegate = false
         var isStyleLoaded = false
+
+        /// Snapshot of the camera value that the delegate last pushed into the
+        /// SwiftUI binding. `updateUIView` compares against this to decide
+        /// whether `applyCamera` needs to run — when SwiftUI's camera matches
+        /// what we just pushed, the update is our own echo and re-applying
+        /// would fight the user's gesture.
+        var lastSyncedCamera: MapCamera?
 
         private static let fogSourceID = "fog-source"
         private static let fogLayerID = "fog-layer"
+
+        /// Wall-clock throttle for live-region updates. ~30 Hz is well below
+        /// MLNMapView's 60 Hz pan/zoom cadence and unnoticeable visually,
+        /// while keeping SwiftUI invalidation pressure bounded.
+        private static let liveUpdateThrottleInterval: TimeInterval = 0.033
+        private var lastLiveUpdateAt: Date = .distantPast
 
         init(parent: PrototypeMapView) {
             self.parent = parent
@@ -96,39 +114,61 @@ extension PrototypeMapView {
 
         // MARK: Camera Sync
 
+        /// Live updates during a pan/pinch gesture — throttled to ~30 Hz so we
+        /// don't flood the SwiftUI view-update cycle on every render frame.
+        nonisolated func mapViewRegionIsChanging(_ mapView: MLNMapView) {
+            MainActor.assumeIsolated {
+                let now = Date()
+                guard now.timeIntervalSince(lastLiveUpdateAt) >= Self.liveUpdateThrottleInterval else {
+                    return
+                }
+                lastLiveUpdateAt = now
+                pushCameraAndBBox(from: mapView)
+            }
+        }
+
+        /// Final-frame update — fired once when the gesture/animation ends.
         nonisolated func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
             MainActor.assumeIsolated {
-                guard !isUpdatingFromBinding else { return }
+                lastLiveUpdateAt = Date()
+                pushCameraAndBBox(from: mapView)
+            }
+        }
 
-                let newCamera = MapCamera(
-                    center: mapView.centerCoordinate,
-                    zoom: mapView.zoomLevel,
-                    bearing: mapView.direction,
-                    pitch: mapView.camera.pitch
+        private func pushCameraAndBBox(from mapView: MLNMapView) {
+            guard !isUpdatingFromBinding else { return }
+
+            let newCamera = MapCamera(
+                center: mapView.centerCoordinate,
+                zoom: mapView.zoomLevel,
+                bearing: mapView.direction,
+                pitch: mapView.camera.pitch
+            )
+
+            let bounds = mapView.visibleCoordinateBounds
+            let newBBox = MapBBox(
+                northEast: CLLocationCoordinate2D(
+                    latitude: bounds.ne.latitude,
+                    longitude: bounds.ne.longitude
+                ),
+                southWest: CLLocationCoordinate2D(
+                    latitude: bounds.sw.latitude,
+                    longitude: bounds.sw.longitude
                 )
+            )
 
-                let bounds = mapView.visibleCoordinateBounds
-                let newBBox = MapBBox(
-                    northEast: CLLocationCoordinate2D(
-                        latitude: bounds.ne.latitude,
-                        longitude: bounds.ne.longitude
-                    ),
-                    southWest: CLLocationCoordinate2D(
-                        latitude: bounds.sw.latitude,
-                        longitude: bounds.sw.longitude
-                    )
-                )
-
-                // Defer binding updates to avoid modifying state during view update.
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.isUpdatingFromDelegate = true
-                    self.parent.visibleBBox = newBBox
-                    if newCamera != self.parent.camera {
-                        self.parent.camera = newCamera
-                    }
-                    self.isUpdatingFromDelegate = false
+            // Atomic on MainActor: update `parent.camera`, `parent.visibleBBox`
+            // and `lastSyncedCamera` together so that when SwiftUI re-evaluates
+            // and `updateUIView` runs, `camera == lastSyncedCamera` and the
+            // redundant `applyCamera` is skipped — leaving the user's gesture
+            // uninterrupted.
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.parent.visibleBBox = newBBox
+                if newCamera != self.parent.camera {
+                    self.parent.camera = newCamera
                 }
+                self.lastSyncedCamera = newCamera
             }
         }
 

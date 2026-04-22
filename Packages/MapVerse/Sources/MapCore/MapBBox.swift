@@ -18,6 +18,17 @@ public struct MapBBox: Sendable, Equatable {
             && coordinate.longitude <= northEast.longitude
     }
 
+    /// Geographic center of the bounding box.
+    ///
+    /// Computed as the midpoint of the NE/SW corners; does not handle the
+    /// antimeridian (bbox spanning ±180° longitude).
+    public var centerCoordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(
+            latitude: (northEast.latitude + southWest.latitude) / 2,
+            longitude: (northEast.longitude + southWest.longitude) / 2
+        )
+    }
+
     /// Returns a new bounding box expanded by the given factor in each direction.
     ///
     /// A factor of 0.5 adds 50% of the span on each side (doubling the total area).
