@@ -13,25 +13,25 @@
 
 ## LocationRecording
 
-**Назначение:** async-native обёртка над `CLLocationUpdate.liveUpdates(.fitness)` с корректным управлением background session.
+**Назначение:** async-native обёртка над `CLLocationUpdate.liveUpdates(.fitness)` с корректным управлением lifecycle. Phase 0 — foreground only; background session (CLBackgroundActivitySession) будет в Phase 1.
 
-### Публичный API
+### Публичный API (реализовано в SCRUM-28)
 
 ```swift
 public actor LocationRecorder {
     public init(configuration: RecordingConfiguration = .cycling)
     
-    /// Основной вход. AsyncSequence локаций до cancellation.
-    public func start() -> AsyncThrowingStream<RawLocation, Error>
+    /// Основной вход. AsyncSequence локаций до cancellation. Идемпотентен.
+    public func start() -> AsyncThrowingStream<RawLocation, any Error>
     
     public func pause()
     public func resume()
     public func stop()
     
-    public var state: RecordingState { get }
+    public private(set) var state: RecordingState { get }
 }
 
-public struct RawLocation: Sendable {
+public struct RawLocation: Sendable, Equatable {
     public let coordinate: CLLocationCoordinate2D
     public let altitude: CLLocationDistance
     public let horizontalAccuracy: CLLocationAccuracy
@@ -41,27 +41,37 @@ public struct RawLocation: Sendable {
     public let timestamp: Date
 }
 
-public struct RecordingConfiguration: Sendable {
-    public var activityType: CLActivityType = .fitness
-    public var backgroundAllowed: Bool = true
-    public var showsBackgroundIndicator: Bool = true
-    public var pausesAutomatically: Bool = false
+public struct RecordingConfiguration: Sendable, Equatable {
+    public var activityType: CLActivityType  // default .fitness
+    public var pausesAutomatically: Bool     // default false
     
     public static let cycling: Self
-    public static let walking: Self  // на будущее
+    public static let walking: Self
 }
 
-public enum RecordingState: Sendable {
-    case idle, recording, paused, failed(Error)
+public enum LocationRecordingError: Error, Sendable, Equatable {
+    case authorizationDenied
+    case locationUnavailable
+    case interrupted
+}
+
+public enum RecordingState: Sendable, Equatable {
+    case idle, recording, paused, failed(LocationRecordingError)
 }
 ```
 
+**Отличия от первоначальной спеки:**
+- `RecordingConfiguration`: `backgroundAllowed`/`showsBackgroundIndicator` убраны (Phase 0 foreground-only). Будут добавлены в Phase 1.
+- `RecordingState.failed` использует типизированный `LocationRecordingError` вместо generic `Error` — для Swift 6 Sendable + Equatable compliance.
+- Внутренний `LocationSource` протокол (package-internal) для тестирования без девайса.
+
 ### Ключевые обязанности
 
-- Внутри -- `CLLocationUpdate.liveUpdates(.fitness)` + `CLBackgroundActivitySession`. Invalidate session перед пере-созданием (обязательно, иначе утечка).
-- Корректное восстановление после background-relaunch: `start()` идемпотентен.
-- Обработка `CLError.denied / locationUnknown` -- пробрасываются в stream; приложение решает, как показать пользователю.
+- Внутри -- `CLLocationUpdate.liveUpdates(.fitness)` через `LocationSource` протокол (production: `CLLocationUpdateSource`).
+- `start()` идемпотентен: повторный вызов возвращает существующий stream.
+- `LocationRecordingError.authorizationDenied / .locationUnavailable` пробрасываются в stream; приложение решает, как показать пользователю.
 - `RawLocation` -- собственная структура (не `CLLocation`), потому что `CLLocation` не `Sendable` и содержит непрозрачное состояние.
+- Пауза: flag-based (GPS session продолжает работать, yield пропускается). Быстрый resume.
 
 ### Что пакет НЕ делает
 
