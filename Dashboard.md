@@ -6,9 +6,9 @@
 
 | Что | Статус |
 |-----|--------|
-| Фаза | [[Roadmap/_index\|Phase F — Foundation]] (3 из 5 задач закрыто) |
-| Завершено | SCRUM-12 (workspace + 5 SPM), SCRUM-17 (CI GitHub Actions), **SCRUM-18 (DesignSystem)** — PR #2 |
-| Следующий шаг | SCRUM-19 (Info.plist + PrivacyInfo, 2-3ч) или SCRUM-20 (PersistenceCore + GRDB, 3-4ч) |
+| Фаза | [[Roadmap/_index\|Phase F — Foundation]] (5 из 5 основных задач закрыто) |
+| Завершено | SCRUM-12 (workspace), 17 (CI), 18 (DesignSystem), **19 (privacy)**, **20 (GRDB)** |
+| Следующий шаг | Follow-up (SCRUM-70/71/72) или [[Roadmap/Phase 0 — Prototype\|Phase 0]]: SCRUM-21 HexCore |
 | Follow-up | SCRUM-70 SwiftLint, SCRUM-71 TestFlight, SCRUM-72 snapshot-тесты DesignSystem |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 

@@ -31,8 +31,20 @@
   - Дополнительно: DesignSystemGallery app target в Xcode для Simulator-валидации
   - _Отклонения:_ платформа `.macOS(.v26)` добавлена для `swift build` на CLI; SF Pro/SF Mono вместо DM Sans/IBM Plex Mono (убран custom-font registrar); snapshot-тесты заменены на `ImageRenderer` smoke checks — реальные screenshots отложены до SCRUM-72
   - Детали: [[../Architecture/Прочие пакеты#DesignSystem|Architecture/Прочие пакеты → DesignSystem]], `Packages/DesignSystem/README.md`
-- **SCRUM-19** [F.4] Info.plist + PrivacyInfo + Capabilities (2-3ч)
-- **SCRUM-20** [F.5] PersistenceCore — GRDB 7 + WAL + migrations (3-4ч)
+- **SCRUM-19** [F.4] Info.plist + PrivacyInfo + Capabilities — **DONE** (коммит `19ba2d2`)
+  - 6 usage descriptions (Location WhenInUse + Always, Motion, Health Share/Update, Bluetooth)
+  - UIBackgroundModes: location, bluetooth-central
+  - BGTaskSchedulerPermittedIdentifiers для GPX/FIT export
+  - NSSupportsLiveActivitiesFrequentUpdates = YES
+  - PrivacyInfo.xcprivacy: tracking=NO, Location+Health data, FileTimestamp/UserDefaults/SystemBootTime API
+  - HealthKit entitlement
+- **SCRUM-20** [F.5] PersistenceCore — GRDB 7 + WAL + migrations — **DONE** (коммит `84f24fb`)
+  - GRDB 7.10.0 SPM, `DatabaseProvider` (file-based + in-memory), `Migration` protocol
+  - WAL + synchronous NORMAL + journal_size_limit 4 MB
+  - Async observation (`observe`), batch writes (`writeInTransaction`), `vacuum()`
+  - `@_exported import GRDB` — downstream получает GRDB-типы автоматически
+  - 13 тестов Swift Testing: WAL, sync, migrations, idempotency, vacuum, batch 1000 rows, concurrent reads, observation
+  - Детали: [[../Architecture/Прочие пакеты#PersistenceCore|Architecture/Прочие пакеты → PersistenceCore]], `Packages/PersistenceCore/README.md`
 
 ### Follow-up
 
