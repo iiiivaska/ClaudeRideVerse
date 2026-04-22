@@ -7,9 +7,9 @@ public struct StopButton: View {
     public static var defaultSize: CGFloat { 60 }
 
     private let size: CGFloat
-    private let action: @Sendable () -> Void
+    private let action: () -> Void
 
-    public init(size: CGFloat = StopButton.defaultSize, action: @escaping @Sendable () -> Void) {
+    public init(size: CGFloat = StopButton.defaultSize, action: @escaping () -> Void) {
         self.size = size
         self.action = action
     }

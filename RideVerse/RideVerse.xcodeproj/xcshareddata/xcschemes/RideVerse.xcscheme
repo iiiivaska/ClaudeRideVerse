@@ -56,6 +56,13 @@
             ReferencedContainer = "container:RideVerse.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "STADIA_API_KEY"
+            value = "6e252b81-5a8c-4103-9315-e23c961778d3"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

@@ -39,12 +39,13 @@ public enum FogGeoJSONBuilder: Sendable {
         var refogPatches: [[[[Double]]]] = []
 
         for polygon in multiPolygon.polygons {
-            let outerRing = polygon.outer.map { [$0.longitude, $0.latitude] }
+            // Outer rings become holes in the fog — must be CW and closed.
+            let outerRing = closedRing(polygon.outer.map { [$0.longitude, $0.latitude] }, clockwise: true)
             mainRings.append(outerRing)
 
-            // Inner holes in visited polygons become re-fog patches
+            // Inner holes in visited polygons become re-fog patches (CCW exterior).
             for hole in polygon.holes {
-                let holeRing = hole.map { [$0.longitude, $0.latitude] }
+                let holeRing = closedRing(hole.map { [$0.longitude, $0.latitude] }, clockwise: false)
                 refogPatches.append([holeRing])
             }
         }
@@ -63,6 +64,40 @@ public enum FogGeoJSONBuilder: Sendable {
         // Structure is guaranteed serializable (arrays of doubles/strings only)
         // swiftlint:disable:next force_try
         return try! JSONSerialization.data(withJSONObject: geoJSON)
+    }
+
+    // MARK: - Ring Helpers
+
+    /// Ensures the ring is closed (first == last) and wound in the requested direction.
+    private static func closedRing(_ ring: [[Double]], clockwise: Bool) -> [[Double]] {
+        guard ring.count >= 3 else { return ring }
+
+        // Close if needed
+        var closed = ring
+        if closed.first != closed.last {
+            closed.append(closed[0])
+        }
+
+        // Check winding via shoelace signed area
+        let isCW = signedArea(closed) < 0
+        if isCW != clockwise {
+            closed.reverse()
+        }
+
+        return closed
+    }
+
+    /// Shoelace signed area. Positive = CCW, negative = CW (in lon/lat space).
+    private static func signedArea(_ ring: [[Double]]) -> Double {
+        var area = 0.0
+        let count = ring.count
+        for i in 0 ..< count {
+            let j = (i + 1) % count
+            // ring[i] = [lon, lat]
+            area += ring[i][0] * ring[j][1]
+            area -= ring[j][0] * ring[i][1]
+        }
+        return area / 2.0
     }
 
     /// Builds GeoJSON for complete fog coverage (no visited cells).

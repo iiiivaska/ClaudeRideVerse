@@ -29,6 +29,12 @@ public struct MapStyle: Sendable, Equatable {
         return .stadiaOutdoors(apiKey: key)
     }
 
+    /// OpenFreeMap Liberty style — free vector tiles, no API key required.
+    public static let openFreeMap = MapStyle(
+        // swiftlint:disable:next force_unwrapping
+        url: URL(string: "https://tiles.openfreemap.org/styles/liberty/style.json")!
+    )
+
     /// MapLibre demo tiles — no API key required. Suitable for previews and CI.
     public static let demotiles = MapStyle(
         // swiftlint:disable:next force_unwrapping
