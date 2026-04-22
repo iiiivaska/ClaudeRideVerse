@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A821AA112F991A24000CB897 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A821AA102F991A24000CB897 /* Secrets.xcconfig */; };
 		A85D83A22F985FBE003731CE /* HexCore in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A12F985FBE003731CE /* HexCore */; };
 		A85D83A42F985FBE003731CE /* HexGeometry in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A32F985FBE003731CE /* HexGeometry */; };
 		A85D83A72F9860EA003731CE /* MapCore in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A62F9860EA003731CE /* MapCore */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A821AA102F991A24000CB897 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A85D83AA2F986189003731CE /* RideVerse.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = RideVerse.xctestplan; path = ../RideVerse.xctestplan; sourceTree = "<group>"; };
 		A8A9AA392F98374A00BBF817 /* RideVerse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RideVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8F8445D2F9874730089FDA6 /* DesignSystemGallery.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DesignSystemGallery.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,6 +79,7 @@
 				A8F8445E2F9874730089FDA6 /* DesignSystemGallery */,
 				A85D83AB2F98631E003731CE /* Frameworks */,
 				A8A9AA3A2F98374A00BBF817 /* Products */,
+				A821AA102F991A24000CB897 /* Secrets.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -198,6 +201,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A821AA112F991A24000CB897 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,6 +348,7 @@
 		};
 		A8A9AA452F98374C00BBF817 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A821AA102F991A24000CB897 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -388,6 +393,7 @@
 		};
 		A8A9AA462F98374C00BBF817 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A821AA102F991A24000CB897 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
