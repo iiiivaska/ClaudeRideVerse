@@ -6,9 +6,9 @@
 
 | Что | Статус |
 |-----|--------|
-| Фаза | [[Roadmap/Phase 0 — Prototype\|Phase 0 — Prototype]] (4 из 7 задач закрыто) |
-| Завершено | **SCRUM-27** (MapFogOfWar — inverted MultiPolygon fog rendering, 23 тестов) |
-| Следующий шаг | SCRUM-28 [[Architecture/LocationKit\|LocationRecording]] — minimal foreground GPS recording |
+| Фаза | [[Roadmap/Phase 0 — Prototype\|Phase 0 — Prototype]] (5 из 7 задач закрыто) |
+| Завершено | **SCRUM-28** (LocationRecording — async GPS recorder actor, 24 теста) |
+| Следующий шаг | SCRUM-29 PrototypeApp — map + fog + Start/Stop screen |
 | Phase F | ✅ Полностью завершена: SCRUM-12, 17, 18, 19, 20 |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 

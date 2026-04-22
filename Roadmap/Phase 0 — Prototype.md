@@ -47,7 +47,14 @@
   - `FogStyle`: fogColor, opacity, edgeColor, pulseNewCells
   - `FogUpdateThrottle`: actor-based rate limiter (default 1/sec)
   - 23 теста в 5 suites (FogResolutionPolicy, FogStyle, FogGeoJSONBuilder, FogLayer, FogUpdateThrottle)
-- **SCRUM-28** [0.5] [[LocationRecording]] — minimal foreground version (2-3ч)
+- **SCRUM-28** [0.5] [[LocationRecording]] — minimal foreground version (2-3ч) — **DONE** (ветка `SCRUM-28`)
+  - `LocationRecorder` actor: start/pause/resume/stop lifecycle, idempotent start()
+  - `RawLocation` Sendable struct (not CLLocation — CLLocation not Sendable)
+  - `RecordingConfiguration` with .cycling/.walking presets
+  - `RecordingState` enum + `LocationRecordingError` typed error (Sendable+Equatable)
+  - Internal `LocationSource` protocol + `CLLocationUpdateSource` (wraps CLLocationUpdate.liveUpdates(.fitness))
+  - Foreground-only for Phase 0 (background session deferred to Phase 1)
+  - 24 теста в 4 suites (RawLocation, RecordingConfiguration, RecordingState, LocationRecorder)
 - **SCRUM-29** [0.6] PrototypeApp — map + fog + Start/Stop screen (3-4ч код + 2-3ч полевые тесты)
 - **SCRUM-30** [0.7] TestFlight + публикация + feedback + go/no-go решение (4-6ч + 1-2 недели ожидания)
 
