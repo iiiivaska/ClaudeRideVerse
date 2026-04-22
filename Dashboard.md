@@ -13,6 +13,7 @@
 | Следующий шаг | SCRUM-31 [1.1] LocationKit full — фильтрация, анализ, motion, фоновая запись |
 | SCRUM-30 | Перенесён в EPIC-1: TestFlight распространение MVP после завершения Phase 1 |
 | SCRUM-74 | [EPIC-DT] Debug Panel — DevTools (7 задач: SCRUM-75–81) |
+| SCRUM-96 | [Phase 2.0] Heatmap треков и плотность хексов "вытоптанные тропы" (6 задач: SCRUM-97–102) — первый post-MVP эпик до CloudKit |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 
 ## Навигация
