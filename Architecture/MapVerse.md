@@ -154,66 +154,74 @@ public struct ClusterLayer<Item: Identifiable>: MapContent where Item: Hashable 
 
 ## MapFogOfWar
 
-**Назначение:** hex-agnostic рендерер fog of war через inverted multipolygon -- принимает абстрактные «visited cells», выдаёт GeoJSON слой.
+**Назначение:** рендерер fog of war через inverted multipolygon -- принимает visited hex cells, выдаёт GeoJSON для MapLibre `MLNShapeSource`.
 
-Критично: пакет **не знает про H3**. Протокол `VisitedCells` принимает любую реализацию -- H3, S2, axial hex, квадраты. В FogRide используется `HexCellSetFogAdapter` из [[HexKit|HexGeometry]], но сам MapFogOfWar от этого не зависит.
+**Статус:** реализован (SCRUM-27). Зависит от MapCore (MapBBox, MapContent) и HexKit (HexCellSet, HexMultiPolygon).
 
-### Публичный API
+### Реализованный API (SCRUM-27)
 
 ```swift
-public struct FogOfWarLayer: MapContent {
-    public init(
-        visited: VisitedCells,
-        style: FogStyle = .default,
-        newCellAnimation: NewCellAnimation? = .pulse
-    )
+// Контракт для источника visited-ячеек
+public protocol VisitedCells: Sendable {
+    func cellSet(in bbox: MapBBox, atZoom zoom: Double) -> HexCellSet
 }
 
-public protocol VisitedCells {
-    /// Вернуть границы «дыр» в тумане для данного viewport и уровня детализации.
-    func holes(in bbox: MapBBox, detail: FogDetailLevel) -> [[CLLocationCoordinate2D]]
-    /// Контрольная сумма для инвалидации кэша; меняется при добавлении новой ячейки.
-    var revision: Int { get }
+// MapContent для декларативной композиции в MapView
+public struct FogLayer: MapContent {
+    public init(visited: any VisitedCells, style: FogStyle = .default)
+    public func geoJSON(in bbox: MapBBox, atZoom zoom: Double) -> Data
 }
 
-public enum FogDetailLevel {
-    case auto(zoom: Double)
-    case fixed(resolution: Int)
+// Стилизация тумана
+public struct FogStyle: Sendable, Equatable {
+    public var fogColor: Color      // default: .black
+    public var opacity: Double      // default: 0.7
+    public var edgeColor: Color?    // default: nil
+    public var pulseNewCells: Bool  // default: true
+    public static let `default`: FogStyle
 }
 
-public struct FogStyle {
-    public var color: Color = .black
-    public var opacity: Double = 0.7
-    public var borderColor: Color? = nil
-    public var borderWidth: CGFloat = 0
-    public var edgeSoftening: Double = 0  // 0 = hard, 1 = soft
+// Zoom → H3 resolution mapping
+public enum FogResolutionPolicy: Sendable {
+    public static func resolution(forZoom zoom: Double) -> HexResolution
+    // > 14 → r9, 10-14 → r7, < 10 → r5
 }
 
-public enum NewCellAnimation {
-    case none
-    case pulse(duration: TimeInterval)
-    case fadeIn(duration: TimeInterval)
+// Построитель инвертированного MultiPolygon GeoJSON
+public enum FogGeoJSONBuilder: Sendable {
+    public static func buildGeoJSON(from multiPolygon: HexMultiPolygon) -> Data
+    public static func buildEmptyFogGeoJSON() -> Data
+}
+
+// Rate limiter для обновлений GeoJSON source (default: 1/sec)
+public actor FogUpdateThrottle {
+    public init(interval: Duration = .seconds(1))
+    public func shouldUpdate() -> Bool
+    public func reset()
 }
 ```
 
 ### Ключевые обязанности
 
-- Один большой `MLNFillStyleLayer` с inverted MultiPolygon.
-- Throttle обновлений GeoJSON source до 1-2 Hz даже если `revision` меняется чаще.
-- Viewport culling: запрашивать у `VisitedCells.holes` только для видимой области + буфер 50%.
-- Адаптивная детализация по zoom: при далёком zoom -- `detail: .auto` вернёт грубые полигоны.
-- Анимация появления новой ячейки: pulse через expression-based `fill-opacity`.
+- Inverted MultiPolygon: мировой прямоугольник (exterior ring, Web Mercator ±85°) с visited hex boundaries как holes.
+- Re-fog patches: внутренние дыры в visited-полигонах (острова непосещённых ячеек) становятся отдельными полигонами в MultiPolygon.
+- GeoJSON output: `[longitude, latitude]` координатный порядок, RFC 7946 CCW exterior ring.
+- `FogUpdateThrottle`: actor-based throttle до 1 Hz для MapLibre source updates.
+- Zoom-aware resolution: `FogResolutionPolicy` для адаптивной детализации по zoom.
 
 ### Что пакет НЕ знает
 
-- Про H3. Протокол `VisitedCells` абстрактен.
-- Про хранилище visited-ячеек. Адаптер загружает их откуда угодно: из памяти, из GRDB, из CloudKit.
+- Про хранилище visited-ячеек. Адаптер в app layer загружает их откуда угодно: из памяти, из GRDB, из CloudKit.
+- Про MLNMapView. Пакет генерирует GeoJSON Data; привязка к MapLibre source/layer — ответственность MapView integration (SCRUM-29).
 
 ### Тесты
 
-- Unit: корректность inverted MultiPolygon для fixture-наборов точек (включая edge case пересечения антимеридиана).
-- Snapshot: рендер 100 / 1000 / 10000 hex.
-- Performance: FPS benchmark на 10k ячеек (target >= 55 FPS на iPhone 14).
+- 23 теста в 5 suites (Swift Testing):
+  - `FogResolutionPolicyTests` (5) — zoom boundaries, r9/r7/r5 mapping
+  - `FogStyleTests` (4) — defaults, custom, equality/inequality
+  - `FogGeoJSONBuilderTests` (6) — empty fog, single hole, multiple holes, re-fog patches, coordinate order
+  - `FogLayerTests` (4) — empty cells, visited cells, MapContent conformance, custom style
+  - `FogUpdateThrottleTests` (3) — first call, blocked call, reset
 
 ### Зависимости
 
