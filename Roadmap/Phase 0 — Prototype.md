@@ -29,7 +29,16 @@
   - MultiPolygon делегирует в HexCellBatch.boundary(of:)
   - Viewport culling: O(n) center check с 50% buffer expansion
   - 36 тестов в 5 suites (compaction, multipolygon, viewport, bbox, pentagon edge cases)
-- **SCRUM-26** [0.3] [[MapCore]] — MapLibre SwiftUI wrapper + Stadia Outdoors (3-4ч)
+- **SCRUM-26** [0.3] [[MapCore]] — MapLibre SwiftUI wrapper + Stadia Outdoors (3-4ч) — **DONE** (PR #5, ветка `SCRUM-26`)
+  - MapLibre Native 6.25.1 + MapLibre SwiftUI DSL 0.21.1 SPM зависимости
+  - `MapCamera` (Sendable, Equatable) с binding + анимации, пресет `.amsterdam`
+  - `MapBBox` (Sendable, Equatable) с `contains`, `expanded`, MLN bridging
+  - `MapStyle` — Stadia Outdoors URL + `STADIA_API_KEY` из environment + `.demotiles` fallback
+  - `MapContent` протокол + `@MapContentBuilder` result builder (EmptyMapContent, MapContentGroup, OptionalMapContent, ConditionalMapContent)
+  - `MapView<Content: MapContent>` — SwiftUI view с `UIViewRepresentable` + Coordinator
+  - `MapViewRepresentable` — MLNMapView обёртка с двусторонним camera binding (guard от feedback loop)
+  - HexBBox остаётся в HexGeometry (независимость пакетов); bridging в SCRUM-27
+  - 26 тестов в 5 suites (MapCamera, MapBBox, MapStyle, MapContentBuilder, module smoke)
 - **SCRUM-27** [0.4] [[MapFogOfWar]] — inverted MultiPolygon (4-5ч)
 - **SCRUM-28** [0.5] [[LocationRecording]] — minimal foreground version (2-3ч)
 - **SCRUM-29** [0.6] PrototypeApp — map + fog + Start/Stop screen (3-4ч код + 2-3ч полевые тесты)
