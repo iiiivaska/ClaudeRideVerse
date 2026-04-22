@@ -55,7 +55,18 @@
   - Internal `LocationSource` protocol + `CLLocationUpdateSource` (wraps CLLocationUpdate.liveUpdates(.fitness))
   - Foreground-only for Phase 0 (background session deferred to Phase 1)
   - 24 теста в 4 suites (RawLocation, RecordingConfiguration, RecordingState, LocationRecorder)
-- **SCRUM-29** [0.6] PrototypeApp — map + fog + Start/Stop screen (3-4ч код + 2-3ч полевые тесты)
+- **SCRUM-29** [0.6] PrototypeApp — map + fog + Start/Stop screen (3-4ч код + 2-3ч полевые тесты) — **DONE** (мерж в `main`, коммит `f844383`)
+  - `PrototypeView` + `PrototypeMapView` (UIViewRepresentable вокруг `MLNMapView`) + `PrototypeViewModel` + `HexGridBuilder` живут в app-таргете `RideVerse/RideVerse/Prototype/` (одноразовый код, не в SPM)
+  - Карта: OpenFreeMap (без API key) с fallback на Stadia Outdoors через `STADIA_API_KEY` env
+  - Hex grid рендерится как `MLNFillStyleLayer` + `MLNLineStyleLayer` поверх `MLNShapeSource`, два state'а (`s=0` unexplored / `s=1` explored) через data-driven color
+  - `coverViewport` через H3 `gridDisk` от центра viewport (НЕ lat/lon walk) — гарантирует покрытие центра экрана при любых зумах
+  - `adjustedResolution`: автоматически переключается на более грубое разрешение, если оценка ячеек > `maxCells (5000)` — на zoom 2-3 уходит в r1/r2
+  - `boundaryCache`: shared `[UInt64: [CLLocationCoordinate2D]]` под `NSLock` (Phase 1: lookup + collect misses, Phase 2: H3 boundary вне lock'а, Phase 3: write back) — без блокировки `Task.detached`-перебилды гонялись и крэшили `Dictionary`
+  - `mapViewRegionIsChanging` с throttle 30 Hz — fog «едет» вместе с картой во время жеста
+  - `lastSyncedCamera` в `Coordinator` предотвращает echo `applyCamera` после нашего же push'а в `@Binding` (иначе `setCamera(animated:)` дрался с пользовательским жестом и снапил камеру обратно)
+  - Visited cells сохраняются на storage resolution `r10` через `HexCellSet`; `displayResolution` маппится из текущего zoom через `FogResolutionPolicy`, parents/children считаются на лету
+  - `FogResolutionPolicy` расширен с 3 до 8 zoom-tiers (r3..r10) для адаптивной детализации на всех зумах
+  - Live updates во время жеста: 50 ms debounce в `handleVisibleBoundsChange`, 15% buffer вокруг viewport
 - **SCRUM-30** [0.7] TestFlight + публикация + feedback + go/no-go решение (4-6ч + 1-2 недели ожидания)
 
 ## Ключевые решения

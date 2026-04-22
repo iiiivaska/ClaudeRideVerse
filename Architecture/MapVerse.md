@@ -34,6 +34,7 @@ public struct MapBBox: Sendable, Equatable {
     public let southWest: CLLocationCoordinate2D
     public func contains(_ coordinate: CLLocationCoordinate2D) -> Bool
     public func expanded(by factor: Double) -> MapBBox
+    public var centerCoordinate: CLLocationCoordinate2D  // SCRUM-29 — для gridDisk-from-center
 }
 
 // Стиль — URL с Stadia Outdoors и демо-тайлами
@@ -181,10 +182,11 @@ public struct FogStyle: Sendable, Equatable {
     public static let `default`: FogStyle
 }
 
-// Zoom → H3 resolution mapping
+// Zoom → H3 resolution mapping (расширено в SCRUM-29 до 8 tiers)
 public enum FogResolutionPolicy: Sendable {
     public static func resolution(forZoom zoom: Double) -> HexResolution
-    // > 14 → r9, 10-14 → r7, < 10 → r5
+    // ≥ 14 → r10  | 12-13 → r9 | 10-11 → r8 | 8-9 → r7
+    // 6-7  → r6  | 4-5  → r5  | 2-3   → r4 | < 2  → r3
 }
 
 // Построитель инвертированного MultiPolygon GeoJSON
