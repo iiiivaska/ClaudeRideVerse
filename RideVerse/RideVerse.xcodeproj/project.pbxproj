@@ -353,7 +353,7 @@
 				DEVELOPMENT_TEAM = 8XKX9Z7C36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RideVerse/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connects to heart rate monitors and cycling sensors during rides";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Reads your heart rate during rides to show live health metrics";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Saves your cycling workouts to Apple Health";
@@ -395,7 +395,7 @@
 				DEVELOPMENT_TEAM = 8XKX9Z7C36;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RideVerse/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connects to heart rate monitors and cycling sensors during rides";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Reads your heart rate during rides to show live health metrics";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Saves your cycling workouts to Apple Health";
