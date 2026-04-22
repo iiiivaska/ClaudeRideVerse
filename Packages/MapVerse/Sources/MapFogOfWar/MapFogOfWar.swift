@@ -1,7 +1,5 @@
 import HexCore
 import MapCore
 
-public enum MapFogOfWar {
-    public static let scaffoldVersion = MapCore.scaffoldVersion
-    public static let hexRuntime = HexCore.scaffoldVersion
-}
+// MapFogOfWar — inverted MultiPolygon fog rendering (SCRUM-27)
+public enum MapFogOfWar {}
