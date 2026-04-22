@@ -71,18 +71,19 @@ NavigationStack { MapScreen() }
 HexCell(state: .newUnlock, radius: 24)   // .fog / .visitedFaded / .explored / .newUnlock
 ```
 
-## Fonts (DM Sans + IBM Plex Mono)
+## Fonts (SF Pro + SF Mono)
 
-The registrar auto-runs on the first access of any `Font.fog*` accessor:
+All typography is backed by Apple's system typefaces — no custom font
+resources, no registration step:
 
-```swift
-public static let ensureRegistered: Void = { register() }()
-```
+- **SF Pro** (`design: .default`) for headings, body, buttons, navigation
+- **SF Mono** (`design: .monospaced`) for every number, metric, caps-label,
+  and tag
 
-If the `.ttf` files are missing from `Sources/DesignSystem/Resources/Fonts/`
-the registrar logs a DEBUG warning and every FogRide font accessor silently
-falls back to the appropriate system font (SF Pro / SF Mono). **Drop the
-files in before shipping** — see `Resources/Fonts/README.md`.
+Sizes and weights mirror the React prototype. If we ever want DM Sans /
+IBM Plex Mono back, drop the `.ttf` files somewhere, add a custom-font
+registrar, and swap the `Font.fog*` implementations — every call site
+stays unchanged.
 
 ## Preview gallery
 

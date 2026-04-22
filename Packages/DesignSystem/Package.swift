@@ -10,9 +10,6 @@ let package = Package(
     targets: [
         .target(
             name: "DesignSystem",
-            resources: [
-                .process("Resources"),
-            ],
             swiftSettings: [
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
                 .enableUpcomingFeature("InferIsolatedConformances"),
