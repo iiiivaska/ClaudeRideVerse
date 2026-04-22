@@ -61,6 +61,22 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version
 
+      # RideVerse.xcodeproj references RideVerse/Secrets.xcconfig via
+      # baseConfigurationReference. The file is gitignored (contains a real
+      # API key for local dev), so CI must create a placeholder before build.
+      # If a `STADIA_API_KEY` GitHub Actions secret is configured, we use it;
+      # otherwise the build compiles with an empty key — runtime map rendering
+      # won't work in CI artifacts, but compilation succeeds which is what CI
+      # verifies. See RideVerse/Secrets.xcconfig.example for the template.
+      - name: Create Secrets.xcconfig for build
+        env:
+          STADIA_API_KEY: ${{ secrets.STADIA_API_KEY }}
+        run: |
+          cat > RideVerse/Secrets.xcconfig <<EOF
+          // Auto-generated in CI — do not rely on this content locally.
+          STADIA_API_KEY = ${STADIA_API_KEY:-ci-placeholder-no-tiles}
+          EOF
+
       - name: Cache SPM
         uses: actions/cache@v4
         with:
