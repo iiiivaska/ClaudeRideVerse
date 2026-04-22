@@ -3,6 +3,8 @@
 
 Domain знает про Packages, но **НЕ знает про UI и Features**. Использует [[MapVerse]], [[LocationKit]], [[HexKit]] через их публичные API.
 
+> ⚠️ **Текущее состояние (2026-04-22):** Domain-слой **не реализован**. Ни один из описанных ниже типов (`Trip`, `Bike`, `UserStats`, `TripRecorder`, `TripRepository`, `FogCalculator`, `AchievementEngine`) в коде не существует. Этот документ — спека для Phase 1 MVP: SCRUM-33 (Domain models + persistence), SCRUM-34 (FogRideServices). Используйте примеры ниже только как проектную цель.
+
 ---
 
 ## Domain/FogRideModels
@@ -14,29 +16,31 @@ Domain знает про Packages, но **НЕ знает про UI и Features*
 ```swift
 @Model
 public final class Trip {
-    @Attribute(.unique) public var id: UUID
-    public var name: String
-    public var startedAt: Date
+    // NB: не используем @Attribute(.unique) — несовместимо с CloudKit sync,
+    // ломает и локальную запись. Уникальность id — на уровне приложения.
+    public var id: UUID = UUID()
+    public var name: String = ""
+    public var startedAt: Date = Date()
     public var endedAt: Date?
-    public var distanceMeters: Double
-    public var movingDurationSeconds: TimeInterval
-    public var totalDurationSeconds: TimeInterval
-    public var elevationGainMeters: Double
-    public var elevationLossMeters: Double
-    public var averageSpeedKmh: Double
-    public var maxSpeedKmh: Double
-    public var newHexCount: Int
-    
+    public var distanceMeters: Double = 0
+    public var movingDurationSeconds: TimeInterval = 0
+    public var totalDurationSeconds: TimeInterval = 0
+    public var elevationGainMeters: Double = 0
+    public var elevationLossMeters: Double = 0
+    public var averageSpeedKmh: Double = 0
+    public var maxSpeedKmh: Double = 0
+    public var newHexCount: Int = 0
+
     /// Simplified polyline для списков и CloudKit (2KB max).
     /// Полные точки -- в GRDB, не синхронизируются.
-    @Attribute(.externalStorage) public var summaryPolyline: Data
-    
+    @Attribute(.externalStorage) public var summaryPolyline: Data = Data()
+
     /// Thumbnail для списка -- рендерим при сохранении.
     @Attribute(.externalStorage) public var thumbnailPNG: Data?
-    
+
     /// Имя файла с raw-точками в GRDB-хранилище.
-    public var trackFileReference: String
-    
+    public var trackFileReference: String = ""
+
     @Relationship public var bike: Bike?
 }
 ```

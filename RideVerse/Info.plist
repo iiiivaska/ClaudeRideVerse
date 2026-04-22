@@ -6,8 +6,8 @@
 	<string>$(STADIA_API_KEY)</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.iiiivaska.RideVerse.export.gpx</string>
-		<string>com.iiiivaska.RideVerse.export.fit</string>
+		<string>com.iiiivaska.TraVerse.export.gpx</string>
+		<string>com.iiiivaska.TraVerse.export.fit</string>
 	</array>
 </dict>
 </plist>

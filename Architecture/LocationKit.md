@@ -1,6 +1,8 @@
 # LocationKit -- группа пакетов для GPS
 > Четыре пакета: LocationRecording, LocationFiltering, LocationAnalysis, LocationMotion. Запись GPS, фильтрация шума, вычисление метрик, авто-пауза.
 
+> ⚠️ **Текущая реализация (2026-04-22):** scaffolded только **LocationRecording** (foreground only). `LocationFiltering` и `LocationAnalysis` запланированы на Phase 1 (SCRUM-31, включая переход на background session). `LocationMotion` — Phase 2+. Этот документ описывает финальный дизайн группы.
+
 ### Почему 4 пакета
 
 - `LocationRecording` и `LocationFiltering` разделены, потому что фильтрация -- чистые функции без side-effects, которые тестируются без симулятора.

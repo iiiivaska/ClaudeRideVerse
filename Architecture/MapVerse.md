@@ -1,6 +1,8 @@
 # MapVerse -- группа пакетов для карт
 > Четыре пакета: MapCore, MapOverlays, MapFogOfWar, MapOfflineRegions. Декларативная SwiftUI-обёртка над MapLibre, оверлеи, fog of war рендеринг и оффлайн-карты.
 
+> ⚠️ **Текущая реализация (2026-04-22):** scaffolded только **MapCore** и **MapFogOfWar**. `MapOverlays` планируется в Phase 1 (SCRUM-32), `MapOfflineRegions` — в Phase 3. Этот документ описывает финальный дизайн группы; раздел «Реализованный API» в каждом пакете помечает, что уже работает.
+
 ### Почему 4 пакета, а не один
 
 Соблазн -- один `FogRideMap` со всем внутри. Но это ошибка:

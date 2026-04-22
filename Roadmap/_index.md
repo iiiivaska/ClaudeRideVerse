@@ -4,8 +4,10 @@
 
 ## Текущий статус
 
-**Активная фаза:** [[Phase 1 — MVP]]
-**Прогресс:** Phase F ✅, Phase 0 ✅. Следующий: SCRUM-31 (LocationKit full).
+**Активная фаза:** [[Phase 1 — MVP]] — 0 из 19 задач готово, работа ещё не начата.
+**Прогресс:** Phase F ✅ (2026-04-10), Phase 0 ✅ (2026-04-22, TestFlight 1.1 отправлен).
+**Pre-MVP gate:** SCRUM-82 [EPIC-AUDIT] — блокирует старт первой задачи Phase 1 (SCRUM-31).
+**Следующий шаг:** закрыть EPIC-AUDIT, затем SCRUM-31 (LocationKit full).
 **DevTools:** [[#EPIC-DT]] Debug Panel (SCRUM-74, 7 задач) — кросс-фазовый эпик для отладки и тестирования.
 
 ## Фазы

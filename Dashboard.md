@@ -7,8 +7,9 @@
 | Что | Статус |
 |-----|--------|
 | Фаза | [[Roadmap/Phase 1 — MVP\|Phase 1 — MVP]] (0 из 19 задач) |
-| Завершено | **Phase F** ✅, **Phase 0** ✅ (все 7 задач, prototype polish, TestFlight prep) |
+| Завершено | **Phase F** ✅, **Phase 0** ✅ — завершена **2026-04-22** (все 7 задач, prototype polish, TestFlight prep) |
 | Приложение | **TraVerse** (com.iiiivaska.TraVerse), TestFlight сборка 1.1 загружена |
+| Pre-MVP gate | **SCRUM-82 [EPIC-AUDIT]** — блокирует SCRUM-7, должен быть закрыт до старта SCRUM-31 |
 | Следующий шаг | SCRUM-31 [1.1] LocationKit full — фильтрация, анализ, motion, фоновая запись |
 | SCRUM-30 | Перенесён в EPIC-1: TestFlight распространение MVP после завершения Phase 1 |
 | SCRUM-74 | [EPIC-DT] Debug Panel — DevTools (7 задач: SCRUM-75–81) |

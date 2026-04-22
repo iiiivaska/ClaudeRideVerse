@@ -61,9 +61,13 @@ public enum FogGeoJSONBuilder: Sendable {
             ] as [String: Any],
         ]
 
-        // Structure is guaranteed serializable (arrays of doubles/strings only)
-        // swiftlint:disable:next force_try
-        return try! JSONSerialization.data(withJSONObject: geoJSON)
+        // Structure is expected to be serializable (arrays of doubles/strings only).
+        // On the pathological case (NaN in coords, OOM, etc.) fall back to a
+        // full-coverage fog so the map still renders without crashing.
+        guard let data = try? JSONSerialization.data(withJSONObject: geoJSON) else {
+            return buildEmptyFogGeoJSON()
+        }
+        return data
     }
 
     // MARK: - Ring Helpers
@@ -109,7 +113,9 @@ public enum FogGeoJSONBuilder: Sendable {
                 "coordinates": [worldExteriorRing],
             ] as [String: Any],
         ]
-        // swiftlint:disable:next force_try
-        return try! JSONSerialization.data(withJSONObject: geoJSON)
+        // Ultimate fallback if even this tiny object fails to serialize —
+        // an empty FeatureCollection keeps the MapLibre source valid.
+        return (try? JSONSerialization.data(withJSONObject: geoJSON))
+            ?? Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
     }
 }
