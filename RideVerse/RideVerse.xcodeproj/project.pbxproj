@@ -6,7 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A85D83A22F985FBE003731CE /* HexCore in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A12F985FBE003731CE /* HexCore */; };
+		A85D83A42F985FBE003731CE /* HexGeometry in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A32F985FBE003731CE /* HexGeometry */; };
+		A85D83A72F9860EA003731CE /* MapCore in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A62F9860EA003731CE /* MapCore */; };
+		A85D83A92F9860EA003731CE /* MapFogOfWar in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83A82F9860EA003731CE /* MapFogOfWar */; };
+		A85D83AD2F986354003731CE /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83AC2F986354003731CE /* DesignSystem */; };
+		A85D83AF2F986354003731CE /* LocationRecording in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83AE2F986354003731CE /* LocationRecording */; };
+		A85D83B12F986354003731CE /* PersistenceCore in Frameworks */ = {isa = PBXBuildFile; productRef = A85D83B02F986354003731CE /* PersistenceCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		A85D83AA2F986189003731CE /* RideVerse.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = RideVerse.xctestplan; path = ../RideVerse.xctestplan; sourceTree = "<group>"; };
 		A8A9AA392F98374A00BBF817 /* RideVerse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RideVerse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -23,16 +34,32 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A85D83AD2F986354003731CE /* DesignSystem in Frameworks */,
+				A85D83A92F9860EA003731CE /* MapFogOfWar in Frameworks */,
+				A85D83A72F9860EA003731CE /* MapCore in Frameworks */,
+				A85D83B12F986354003731CE /* PersistenceCore in Frameworks */,
+				A85D83AF2F986354003731CE /* LocationRecording in Frameworks */,
+				A85D83A42F985FBE003731CE /* HexGeometry in Frameworks */,
+				A85D83A22F985FBE003731CE /* HexCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A85D83AB2F98631E003731CE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A8A9AA302F98374A00BBF817 = {
 			isa = PBXGroup;
 			children = (
+				A85D83AA2F986189003731CE /* RideVerse.xctestplan */,
 				A8A9AA3B2F98374A00BBF817 /* RideVerse */,
+				A85D83AB2F98631E003731CE /* Frameworks */,
 				A8A9AA3A2F98374A00BBF817 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +92,13 @@
 			);
 			name = RideVerse;
 			packageProductDependencies = (
+				A85D83A12F985FBE003731CE /* HexCore */,
+				A85D83A32F985FBE003731CE /* HexGeometry */,
+				A85D83A62F9860EA003731CE /* MapCore */,
+				A85D83A82F9860EA003731CE /* MapFogOfWar */,
+				A85D83AC2F986354003731CE /* DesignSystem */,
+				A85D83AE2F986354003731CE /* LocationRecording */,
+				A85D83B02F986354003731CE /* PersistenceCore */,
 			);
 			productName = RideVerse;
 			productReference = A8A9AA392F98374A00BBF817 /* RideVerse.app */;
@@ -94,6 +128,10 @@
 			);
 			mainGroup = A8A9AA302F98374A00BBF817;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A85D83A02F985FBE003731CE /* XCLocalSwiftPackageReference "../Packages/HexKit" */,
+				A85D83A52F9860EA003731CE /* XCLocalSwiftPackageReference "../Packages/MapVerse" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A8A9AA3A2F98374A00BBF817 /* Products */;
 			projectDirPath = "";
@@ -334,6 +372,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A85D83A02F985FBE003731CE /* XCLocalSwiftPackageReference "../Packages/HexKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/HexKit;
+		};
+		A85D83A52F9860EA003731CE /* XCLocalSwiftPackageReference "../Packages/MapVerse" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/MapVerse;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A85D83A12F985FBE003731CE /* HexCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HexCore;
+		};
+		A85D83A32F985FBE003731CE /* HexGeometry */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HexGeometry;
+		};
+		A85D83A62F9860EA003731CE /* MapCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapCore;
+		};
+		A85D83A82F9860EA003731CE /* MapFogOfWar */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapFogOfWar;
+		};
+		A85D83AC2F986354003731CE /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DesignSystem;
+		};
+		A85D83AE2F986354003731CE /* LocationRecording */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LocationRecording;
+		};
+		A85D83B02F986354003731CE /* PersistenceCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PersistenceCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A8A9AA312F98374A00BBF817 /* Project object */;
 }

@@ -12,4 +12,5 @@
 - [[SensorKit]] -- группа пакетов для BLE-сенсоров: BLESensorCore, CyclingSensors (фаза 5)
 - [[Domain]] -- доменный слой: FogRideModels, FogRidePersistence, FogRideServices, composition root
 - [[Прочие пакеты]] -- WorkoutKit, TrackExport, PersistenceCore, DesignSystem
+- [[CI]] -- GitHub Actions workflow: build + test, runner, кэш, ограничения, секреты
 - [[Антипаттерны]] -- собрание антипаттернов, которых следует избегать при развитии кодовой базы
