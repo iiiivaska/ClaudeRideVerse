@@ -24,7 +24,10 @@ let package = Package(
         ),
         .target(
             name: "HexGeometry",
-            dependencies: ["HexCore"],
+            dependencies: [
+                "HexCore",
+                .product(name: "SwiftyH3", package: "SwiftyH3"),
+            ],
             swiftSettings: [
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
                 .enableUpcomingFeature("InferIsolatedConformances"),
