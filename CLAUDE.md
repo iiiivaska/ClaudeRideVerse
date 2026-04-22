@@ -14,6 +14,7 @@ TraVerse (repo codename: RideVerse / FogRide) is an iOS 26+ bicycle tracking app
 - Single target: `RideVerse` (iOS app, deployment target 26.0)
 - **Bundle ID:** `com.iiiivaska.TraVerse` (app identity in App Store Connect / TestFlight)
 - Repo / Xcode project / scheme name остаётся `RideVerse` (не переименовано из-за git history и CloudKit container linkage)
+- **Secrets:** copy `RideVerse/Secrets.xcconfig.example` → `RideVerse/Secrets.xcconfig` и заполни `STADIA_API_KEY`. Реальный файл gitignored. CI генерирует placeholder автоматически (из `STADIA_API_KEY` GitHub Actions secret или fallback).
 - No external dependency manager yet — pure native build
 - If SwiftLint is installed, ensure zero warnings/errors before committing
 

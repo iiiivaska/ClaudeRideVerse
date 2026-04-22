@@ -19,11 +19,17 @@ Phase 0 (Prototype) ✅ complete — TestFlight build 1.1 submitted 2026-04-22. 
 
 Open `RideVerse.xcworkspace` in **Xcode 26.4.1 or later**. Deployment target: iOS 26.
 
-```
+```bash
+# First-time setup: create Secrets.xcconfig from example + fill in STADIA_API_KEY
+cp RideVerse/Secrets.xcconfig.example RideVerse/Secrets.xcconfig
+# edit RideVerse/Secrets.xcconfig and paste your Stadia API key
+
 open RideVerse.xcworkspace
 ```
 
 Single app target (`RideVerse` scheme, bundle ID `com.iiiivaska.TraVerse`, display name **TraVerse**) plus local SPM packages under `Packages/`.
+
+`RideVerse/Secrets.xcconfig` is gitignored. CI generates a placeholder automatically — from a `STADIA_API_KEY` GitHub Actions secret if configured, or a no-tiles fallback otherwise.
 
 ## CI
 
