@@ -1,5 +1,4 @@
 import HexCore
 
-public enum HexGeometry {
-    public static let scaffoldVersion = HexCore.scaffoldVersion
-}
+// HexGeometry — compaction, multipolygon, viewport culling (SCRUM-25)
+public enum HexGeometry {}

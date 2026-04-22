@@ -1,6 +1,9 @@
 import Testing
+
 @testable import HexGeometry
 
-@Test func scaffoldVersionMatchesCore() {
-    #expect(HexGeometry.scaffoldVersion == "0.0.1")
+@Test func hexGeometryModuleImports() {
+    // HexGeometry module exists and can be imported
+    // Actual tests will be added in SCRUM-25
+    #expect(true)
 }
