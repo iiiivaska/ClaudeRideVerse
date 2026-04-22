@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RideVerse (codename: FogRide) is an iOS 26+ bicycle tracking app with a fog-of-war exploration mechanic built on H3 hexagonal grids. Solo developer, 18-month roadmap. Currently in early architecture/scaffolding phase.
+TraVerse (repo codename: RideVerse / FogRide) is an iOS 26+ bicycle tracking app with a fog-of-war exploration mechanic built on H3 hexagonal grids. Solo developer, 18-month roadmap. **Phase 0 (Prototype) ✅ complete — TestFlight 1.1 submitted 2026-04-22. Currently in Phase 1 — MVP (0 of 19 tasks done).**
 
 **Tech stack:** SwiftUI, Swift 6.2, SwiftData + CloudKit, MapLibre, SwiftyH3, GRDB, AsyncBluetooth, Liquid Glass design.
 
@@ -12,7 +12,8 @@ RideVerse (codename: FogRide) is an iOS 26+ bicycle tracking app with a fog-of-w
 
 - Open `RideVerse.xcworkspace` in Xcode 26.4.1+
 - Single target: `RideVerse` (iOS app, deployment target 26.0)
-- Bundle ID: `com.iiiivaska.RideVerse`
+- **Bundle ID:** `com.iiiivaska.TraVerse` (app identity in App Store Connect / TestFlight)
+- Repo / Xcode project / scheme name остаётся `RideVerse` (не переименовано из-за git history и CloudKit container linkage)
 - No external dependency manager yet — pure native build
 - If SwiftLint is installed, ensure zero warnings/errors before committing
 

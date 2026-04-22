@@ -68,9 +68,11 @@ nonisolated enum HexGridBuilder {
         for cell in viewportCells {
             guard let boundary = boundaries[cell.index] else { continue }
 
-            let feature = boundary.withUnsafeBufferPointer { buf in
-                MLNPolygonFeature(coordinates: buf.baseAddress!, count: UInt(buf.count))
+            let feature: MLNPolygonFeature? = boundary.withUnsafeBufferPointer { buf in
+                guard let addr = buf.baseAddress else { return nil }
+                return MLNPolygonFeature(coordinates: addr, count: UInt(buf.count))
             }
+            guard let feature else { continue }
             feature.attributes = ["s": NSNumber(value: displayVisited.contains(cell.index) ? 1 : 0)]
             features.append(feature)
         }

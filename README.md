@@ -1,8 +1,10 @@
-# RideVerse
+# TraVerse (repo: RideVerse)
 
 [![CI](https://github.com/iiiivaska/ClaudeRideVerse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/iiiivaska/ClaudeRideVerse/actions/workflows/ci.yml)
 
-iOS 26+ bicycle tracking app with a fog-of-war exploration mechanic over an H3 hexagonal grid. Codename **FogRide**. Solo developer, 18-month roadmap.
+iOS 26+ bicycle tracking app with a fog-of-war exploration mechanic over an H3 hexagonal grid. App Store identity: **TraVerse**. Repo / Xcode project codename: **RideVerse** (historical, kept for git + CloudKit linkage). Previous codename: FogRide. Solo developer, 18-month roadmap.
+
+Phase 0 (Prototype) ✅ complete — TestFlight build 1.1 submitted 2026-04-22. Currently in **Phase 1 — MVP** (0 / 19 tasks).
 
 ## Tech stack
 
@@ -21,7 +23,7 @@ Open `RideVerse.xcworkspace` in **Xcode 26.4.1 or later**. Deployment target: iO
 open RideVerse.xcworkspace
 ```
 
-Single app target (`RideVerse`, bundle ID `com.iiiivaska.RideVerse`) plus local SPM packages under `Packages/`.
+Single app target (`RideVerse` scheme, bundle ID `com.iiiivaska.TraVerse`, display name **TraVerse**) plus local SPM packages under `Packages/`.
 
 ## CI
 
