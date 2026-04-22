@@ -6,10 +6,11 @@
 
 | Что | Статус |
 |-----|--------|
-| Фаза | [[Roadmap/Phase 0 — Prototype\|Phase 0 — Prototype]] (6 из 7 задач закрыто) |
-| Завершено | **SCRUM-29** (PrototypeApp — map + hex fog-of-war + Start/Stop, gridDisk viewport, throttled live updates, thread-safe boundary cache) |
-| Следующий шаг | SCRUM-30 TestFlight + публикация + feedback + go/no-go решение |
-| Phase F | ✅ Полностью завершена: SCRUM-12, 17, 18, 19, 20 |
+| Фаза | [[Roadmap/Phase 1 — MVP\|Phase 1 — MVP]] (0 из 19 задач) |
+| Завершено | **Phase F** ✅, **Phase 0** ✅ (все 7 задач, prototype polish, TestFlight prep) |
+| Приложение | **TraVerse** (com.iiiivaska.TraVerse), TestFlight сборка 1.1 загружена |
+| Следующий шаг | SCRUM-31 [1.1] LocationKit full — фильтрация, анализ, motion, фоновая запись |
+| SCRUM-30 | Перенесён в EPIC-1: TestFlight распространение MVP после завершения Phase 1 |
 | Jira | [SCRUM Board](https://rideverse.atlassian.net/jira/software/projects/SCRUM/boards/1) |
 
 ## Навигация

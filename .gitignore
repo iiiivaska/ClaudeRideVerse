@@ -42,3 +42,4 @@ Packages/*/.swiftpm/
 .env
 .env.local
 *.pem
+Secrets.xcconfig

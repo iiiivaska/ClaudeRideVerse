@@ -9,7 +9,10 @@ struct PrototypeView: View {
     @State private var viewModel = PrototypeViewModel()
 
     private var mapStyle: MapStyle {
-        MapStyle.stadiaOutdoorsFromEnvironment() ?? .openFreeMap
+        if let key = Bundle.main.infoDictionary?["StadiaAPIKey"] as? String, !key.isEmpty {
+            return .stadiaOutdoors(apiKey: key)
+        }
+        return MapStyle.stadiaOutdoorsFromEnvironment() ?? .openFreeMap
     }
 
     var body: some View {

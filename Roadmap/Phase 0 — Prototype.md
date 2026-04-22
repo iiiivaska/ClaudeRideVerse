@@ -67,7 +67,14 @@
   - Visited cells сохраняются на storage resolution `r10` через `HexCellSet`; `displayResolution` маппится из текущего zoom через `FogResolutionPolicy`, parents/children считаются на лету
   - `FogResolutionPolicy` расширен с 3 до 8 zoom-tiers (r3..r10) для адаптивной детализации на всех зумах
   - Live updates во время жеста: 50 ms debounce в `handleVisibleBoundsChange`, 15% buffer вокруг viewport
-- **SCRUM-30** [0.7] TestFlight + публикация + feedback + go/no-go решение (4-6ч + 1-2 недели ожидания)
+- **SCRUM-30** [0.7] ~~TestFlight + публикация + feedback + go/no-go~~ — **ПЕРЕНЕСЁН в EPIC-1** как [1.16]
+  - Решение: показывать комьюнити MVP, а не прототип
+  - Prep-работа сделана: prototype polish (onboarding, HUD, track polyline, ride summary, app icon), TestFlight настроен (TraVerse, сборка 1.1 загружена), privacy policy опубликована
+  - Распространение и сбор фидбэка будут после завершения Phase 1 MVP
+
+## Итог Phase 0
+
+✅ **Phase 0 завершена.** Все пакеты реализованы (HexCore, HexGeometry, MapCore, MapFogOfWar, LocationRecording), прототип собран и отполирован, TestFlight инфраструктура настроена. Приложение переименовано в **TraVerse** (com.iiiivaska.TraVerse). Переходим к Phase 1 — MVP.
 
 ## Ключевые решения
 
