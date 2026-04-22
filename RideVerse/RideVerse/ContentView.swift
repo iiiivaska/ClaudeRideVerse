@@ -1,8 +1,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("onboarding_complete") private var onboardingComplete = false
+
     var body: some View {
-        PrototypeView()
+        if onboardingComplete {
+            PrototypeView()
+        } else {
+            OnboardingView {
+                onboardingComplete = true
+            }
+        }
     }
 }
 

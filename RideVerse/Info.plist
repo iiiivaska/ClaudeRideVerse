@@ -7,7 +7,5 @@
 		<string>com.iiiivaska.RideVerse.export.gpx</string>
 		<string>com.iiiivaska.RideVerse.export.fit</string>
 	</array>
-	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
-	<true/>
 </dict>
 </plist>
