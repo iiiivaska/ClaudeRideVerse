@@ -40,6 +40,8 @@
 - **SCRUM-49** [1.19] Paywall screen — hex-unlocking hero + 3 tiers (10-12ч)
 - **SCRUM-45** [1.15] Analytics (TelemetryDeck) + MetricKit + Sentry (6ч)
 - **SCRUM-46** [1.16] App Store submission (8ч)
+- **SCRUM-30** [1.16] TestFlight релиз MVP + публикация + сбор фидбэка + go/no-go (перенесён из Phase 0, prep done)
+- **SCRUM-73** Перенести API-ключи в CloudKit Remote Config
 
 ## Ключевые решения
 

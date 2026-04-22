@@ -1,0 +1,24 @@
+{
+  "originHash" : "32bda88c58e164aeb4f0d99279bb91ade5114b49d017f12aacf82601052c3a0b",
+  "pins" : [
+    {
+      "identity" : "maplibre-gl-native-distribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/maplibre/maplibre-gl-native-distribution.git",
+      "state" : {
+        "revision" : "40e1a0db6d055abf8a1b6e2f6127a8bb6e895cf8",
+        "version" : "6.25.1"
+      }
+    },
+    {
+      "identity" : "swiftyh3",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pawelmajcher/SwiftyH3.git",
+      "state" : {
+        "revision" : "6d9b5774cc7cc198597b14aaccf213587947678c",
+        "version" : "0.5.0"
+      }
+    }
+  ],
+  "version" : 3
+}
